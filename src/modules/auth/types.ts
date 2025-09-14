@@ -3,8 +3,7 @@ export interface SendOtpRequest {
 }
 
 export interface SendOtpResponse {
-  message: string;
-  otpId?: string; // For tracking purposes
+  // No response body - returns 204 No Content
 }
 
 export interface VerifyOtpRequest {
@@ -13,15 +12,7 @@ export interface VerifyOtpRequest {
 }
 
 export interface VerifyOtpResponse {
-  message: string;
   token: string;
-  user: {
-    id: string;
-    phone: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  };
 }
 
 export interface OtpSession {
@@ -46,8 +37,9 @@ export interface OtpService {
 }
 
 export interface AuthService {
-  sendOtp(phone: string): Promise<SendOtpResponse>;
+  sendOtp(phone: string): Promise<void>;
   verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse>;
   generateToken(userId: string, phone: string): string;
   verifyToken(token: string): AuthToken | null;
+  getMe(userId: string): Promise<{ id: string; phone: string; firstName?: string; lastName?: string; email?: string; createdAt: string; updatedAt: string } | null>;
 }

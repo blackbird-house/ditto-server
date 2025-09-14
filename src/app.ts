@@ -69,4 +69,12 @@ if (config.features.enableDebugRoutes) {
   });
 }
 
+// 404 handler for undefined routes - must be last
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    message: `Cannot ${req.method} ${req.originalUrl}`
+  });
+});
+
 export default app;

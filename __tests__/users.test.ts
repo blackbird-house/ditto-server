@@ -89,14 +89,17 @@ describe('User Module', () => {
     });
   });
 
-  describe('PUT /users/:id', () => {
+  describe('PUT /users/me', () => {
     it('should update user with valid data', async () => {
+      const testPhone = '+1111111111';
+      const expectedOtp = '111111'; // Last 6 digits of testPhone
+
       // Create a user first
       const userData = {
         firstName: 'Original',
         lastName: 'Name',
         email: 'original@example.com',
-        phone: '+1111111111'
+        phone: testPhone
       };
 
       const createResponse = await request(app)
@@ -105,6 +108,19 @@ describe('User Module', () => {
         .expect(201);
 
       const userId = createResponse.body.user.id;
+
+      // Authenticate to get token
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
 
       // Update the user
       const updateData = {
@@ -115,7 +131,8 @@ describe('User Module', () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put('/users/me')
+        .set('Authorization', `Bearer ${token}`)
         .send(updateData)
         .expect(200);
 
@@ -131,20 +148,34 @@ describe('User Module', () => {
     });
 
     it('should update user with partial data', async () => {
+      const testPhone = '+1111111111';
+      const expectedOtp = '111111'; // Last 6 digits of testPhone
+
       // Create a user first
       const userData = {
         firstName: 'Original',
         lastName: 'Name',
         email: 'original@example.com',
-        phone: '+1111111111'
+        phone: testPhone
       };
 
-      const createResponse = await request(app)
+      await request(app)
         .post('/users')
         .send(userData)
         .expect(201);
 
-      const userId = createResponse.body.user.id;
+      // Authenticate to get token
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
 
       // Update only firstName
       const updateData = {
@@ -152,7 +183,8 @@ describe('User Module', () => {
       };
 
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put('/users/me')
+        .set('Authorization', `Bearer ${token}`)
         .send(updateData)
         .expect(200);
 
@@ -163,24 +195,39 @@ describe('User Module', () => {
     });
 
     it('should return 400 for empty update data', async () => {
+      const testPhone = '+1111111111';
+      const expectedOtp = '111111'; // Last 6 digits of testPhone
+
       // Create a user first
       const userData = {
         firstName: 'Test',
         lastName: 'User',
         email: 'test@example.com',
-        phone: '+1111111111'
+        phone: testPhone
       };
 
-      const createResponse = await request(app)
+      await request(app)
         .post('/users')
         .send(userData)
         .expect(201);
 
-      const userId = createResponse.body.user.id;
+      // Authenticate to get token
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
 
       // Try to update with empty data
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put('/users/me')
+        .set('Authorization', `Bearer ${token}`)
         .send({})
         .expect(400);
 
@@ -189,24 +236,39 @@ describe('User Module', () => {
     });
 
     it('should return 400 for invalid email format', async () => {
+      const testPhone = '+1111111111';
+      const expectedOtp = '111111'; // Last 6 digits of testPhone
+
       // Create a user first
       const userData = {
         firstName: 'Test',
         lastName: 'User',
         email: 'test@example.com',
-        phone: '+1111111111'
+        phone: testPhone
       };
 
-      const createResponse = await request(app)
+      await request(app)
         .post('/users')
         .send(userData)
         .expect(201);
 
-      const userId = createResponse.body.user.id;
+      // Authenticate to get token
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
 
       // Try to update with invalid email
       const response = await request(app)
-        .put(`/users/${userId}`)
+        .put('/users/me')
+        .set('Authorization', `Bearer ${token}`)
         .send({ email: 'invalid-email' })
         .expect(400);
 
@@ -214,33 +276,48 @@ describe('User Module', () => {
       expect(response.body).toHaveProperty('message', 'Please provide a valid email address');
     });
 
-    it('should return 404 for non-existent user ID', async () => {
+    it('should return 401 for missing authentication token', async () => {
       const response = await request(app)
-        .put('/users/non-existent-id')
+        .put('/users/me')
         .send({ firstName: 'Updated' })
-        .expect(404);
+        .expect(401);
 
-      expect(response.body).toHaveProperty('error', 'Not found');
-      expect(response.body).toHaveProperty('message', 'User not found');
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+      expect(response.body).toHaveProperty('message', 'Authorization header is required');
+    });
+
+    it('should return 401 for invalid authentication token', async () => {
+      const response = await request(app)
+        .put('/users/me')
+        .set('Authorization', 'Bearer invalid-token')
+        .send({ firstName: 'Updated' })
+        .expect(401);
+
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+      expect(response.body).toHaveProperty('message', 'Invalid or expired token');
     });
 
     it('should return 409 for duplicate email', async () => {
+      const testPhone1 = '+1111111111';
+      const testPhone2 = '+2222222222';
+      const expectedOtp1 = '111111'; // Last 6 digits of testPhone1
+
       // Create two users
       const user1Data = {
         firstName: 'User1',
         lastName: 'Test',
         email: 'user1@example.com',
-        phone: '+1111111111'
+        phone: testPhone1
       };
 
       const user2Data = {
         firstName: 'User2',
         lastName: 'Test',
         email: 'user2@example.com',
-        phone: '+2222222222'
+        phone: testPhone2
       };
 
-      const createResponse1 = await request(app)
+      await request(app)
         .post('/users')
         .send(user1Data)
         .expect(201);
@@ -250,11 +327,23 @@ describe('User Module', () => {
         .send(user2Data)
         .expect(201);
 
-      const userId1 = createResponse1.body.user.id;
+      // Authenticate user1 to get token
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone1 })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone1, otp: expectedOtp1 })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
 
       // Try to update user1 with user2's email
       const response = await request(app)
-        .put(`/users/${userId1}`)
+        .put('/users/me')
+        .set('Authorization', `Bearer ${token}`)
         .send({ email: 'user2@example.com' })
         .expect(409);
 

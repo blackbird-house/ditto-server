@@ -65,4 +65,41 @@ describe('Server Configuration', () => {
       expect(response.body).toEqual({});
     });
   });
+
+  describe('404 Error Handler', () => {
+    it('should return JSON 404 for undefined routes', async () => {
+      const response = await request(app)
+        .get('/nonexistent-route')
+        .expect(404);
+      
+      expect(response.body).toEqual({
+        error: 'Not found',
+        message: 'Cannot GET /nonexistent-route'
+      });
+    });
+
+    it('should return JSON 404 for undefined PUT routes', async () => {
+      const response = await request(app)
+        .put('/users/some-id')
+        .send({ firstName: 'Test' })
+        .expect(404);
+      
+      expect(response.body).toEqual({
+        error: 'Not found',
+        message: 'Cannot PUT /users/some-id'
+      });
+    });
+
+    it('should return JSON 404 for undefined POST routes', async () => {
+      const response = await request(app)
+        .post('/invalid/endpoint')
+        .send({ test: 'data' })
+        .expect(404);
+      
+      expect(response.body).toEqual({
+        error: 'Not found',
+        message: 'Cannot POST /invalid/endpoint'
+      });
+    });
+  });
 });

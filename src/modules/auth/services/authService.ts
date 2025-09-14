@@ -1,4 +1,4 @@
-import { AuthService, SendOtpResponse, VerifyOtpResponse, AuthToken } from '../types';
+import { AuthService, VerifyOtpResponse, AuthToken } from '../types';
 import { MockOtpService } from './mockOtpService';
 import { userService } from '../../users/service';
 
@@ -15,7 +15,7 @@ export class AuthServiceImpl implements AuthService {
     }, 5 * 60 * 1000);
   }
 
-  async sendOtp(phone: string): Promise<SendOtpResponse> {
+  async sendOtp(phone: string): Promise<void> {
     // Validate phone number format (basic validation)
     if (!this.isValidPhoneNumber(phone)) {
       throw new Error('Invalid phone number format');
@@ -39,10 +39,7 @@ export class AuthServiceImpl implements AuthService {
         maxAttempts: 3
       });
 
-      return {
-        message: 'OTP sent successfully',
-        otpId
-      };
+      // No return value - 204 No Content response
     } catch (error) {
       throw new Error('Failed to send OTP');
     }
@@ -63,17 +60,12 @@ export class AuthServiceImpl implements AuthService {
         throw new Error('Invalid or expired OTP');
       }
 
-      // OTP is valid, find or create user
-      let user = this.findUserByPhone(phone);
+      // OTP is valid, find user
+      const user = this.findUserByPhone(phone);
       
       if (!user) {
-        // Create new user with phone number
-        user = userService.createUser({
-          firstName: 'User',
-          lastName: 'User',
-          email: `${phone}@temp.com`, // Temporary email
-          phone: phone
-        });
+        // User not found - return 404 error
+        throw new Error('User not found');
       }
 
       // Generate JWT token
@@ -83,15 +75,7 @@ export class AuthServiceImpl implements AuthService {
       this.otpSessions.delete(sessionKey);
 
       return {
-        message: 'OTP verified successfully',
-        token,
-        user: {
-          id: user.id,
-          phone: user.phone,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email
-        }
+        token
       };
     } catch (error) {
       throw error;
@@ -131,6 +115,27 @@ export class AuthServiceImpl implements AuthService {
     // Basic phone number validation (international format)
     const phoneRegex = /^\+[1-9]\d{1,14}$/;
     return phoneRegex.test(phone);
+  }
+
+  async getMe(userId: string): Promise<{ id: string; phone: string; firstName?: string; lastName?: string; email?: string; createdAt: string; updatedAt: string } | null> {
+    try {
+      const user = userService.getUserById(userId);
+      if (!user) {
+        return null;
+      }
+
+      return {
+        id: user.id,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString()
+      };
+    } catch (error) {
+      return null;
+    }
   }
 
   private findUserByPhone(phone: string) {

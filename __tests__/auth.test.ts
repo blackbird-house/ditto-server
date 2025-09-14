@@ -7,10 +7,9 @@ describe('Authentication Module', () => {
       const response = await request(app)
         .post('/auth/send-otp')
         .send({ phone: '+1234567890' })
-        .expect(200);
+        .expect(204);
 
-      expect(response.body).toHaveProperty('message', 'OTP sent successfully');
-      expect(response.body).toHaveProperty('otpId');
+      expect(response.body).toEqual({});
     });
 
     it('should return 400 for missing phone number', async () => {
@@ -56,43 +55,127 @@ describe('Authentication Module', () => {
     });
   });
 
-  describe('Authentication Flow', () => {
-    it('should complete full authentication flow', async () => {
+  describe('GET /users/me', () => {
+    it('should return 401 for missing authentication token', async () => {
+      const response = await request(app)
+        .get('/users/me')
+        .expect(401);
+
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+      expect(response.body).toHaveProperty('message', 'Authorization header is required');
+    });
+
+    it('should return 401 for invalid authentication token', async () => {
+      const response = await request(app)
+        .get('/users/me')
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401);
+
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+      expect(response.body).toHaveProperty('message', 'Invalid or expired token');
+    });
+
+    it('should return user profile with valid token', async () => {
       const testPhone = '+1234567890';
       const expectedOtp = '567890'; // Last 6 digits of testPhone
 
-      // Step 1: Send OTP
-      const sendOtpResponse = await request(app)
+      // Step 1: Create a user first
+      await request(app)
+        .post('/users')
+        .send({
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john.doe@example.com',
+          phone: testPhone
+        })
+        .expect(201);
+
+      // Step 2: Send OTP
+      await request(app)
         .post('/auth/send-otp')
         .send({ phone: testPhone })
-        .expect(200);
+        .expect(204);
 
-      expect(sendOtpResponse.body).toHaveProperty('message', 'OTP sent successfully');
-      expect(sendOtpResponse.body).toHaveProperty('otpId');
-
-      // Step 2: Verify OTP with correct code (last 6 digits)
+      // Step 3: Verify OTP to get token
       const verifyOtpResponse = await request(app)
         .post('/auth/verify-otp')
         .send({ phone: testPhone, otp: expectedOtp })
         .expect(200);
 
-      expect(verifyOtpResponse.body).toHaveProperty('message', 'OTP verified successfully');
+      const token = verifyOtpResponse.body.token;
+
+      // Step 4: Get user profile using token
+      const getMeResponse = await request(app)
+        .get('/users/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(getMeResponse.body).toHaveProperty('id');
+      expect(getMeResponse.body).toHaveProperty('phone', testPhone);
+      expect(getMeResponse.body).toHaveProperty('firstName', 'John');
+      expect(getMeResponse.body).toHaveProperty('lastName', 'Doe');
+      expect(getMeResponse.body).toHaveProperty('email', 'john.doe@example.com');
+      expect(getMeResponse.body).toHaveProperty('createdAt');
+      expect(getMeResponse.body).toHaveProperty('updatedAt');
+    });
+  });
+
+  describe('Authentication Flow', () => {
+    it('should complete full authentication flow', async () => {
+      const testPhone = '+1234567890';
+      const expectedOtp = '567890'; // Last 6 digits of testPhone
+
+      // Step 1: Create a user first
+      await request(app)
+        .post('/users')
+        .send({
+          firstName: 'Jane',
+          lastName: 'Smith',
+          email: 'jane.smith@example.com',
+          phone: testPhone
+        })
+        .expect(201);
+
+      // Step 2: Send OTP
+      const sendOtpResponse = await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      expect(sendOtpResponse.body).toEqual({});
+
+      // Step 3: Verify OTP with correct code (last 6 digits)
+      const verifyOtpResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(200);
+
       expect(verifyOtpResponse.body).toHaveProperty('token');
-      expect(verifyOtpResponse.body).toHaveProperty('user');
-      expect(verifyOtpResponse.body.user).toHaveProperty('phone', testPhone);
+      expect(verifyOtpResponse.body.token).toBeTruthy();
     });
 
     it('should fail with incorrect OTP', async () => {
       const testPhone = '+1234567890';
       const incorrectOtp = '123456'; // Wrong OTP
 
-      // Step 1: Send OTP
+      // Step 1: Create a user first
+      await request(app)
+        .post('/users')
+        .send({
+          firstName: 'Bob',
+          lastName: 'Johnson',
+          email: 'bob.johnson@example.com',
+          phone: testPhone
+        })
+        .expect(201);
+
+      // Step 2: Send OTP
       await request(app)
         .post('/auth/send-otp')
         .send({ phone: testPhone })
-        .expect(200);
+        .expect(204);
 
-      // Step 2: Try to verify with incorrect OTP
+      // Step 3: Try to verify with incorrect OTP
       const verifyOtpResponse = await request(app)
         .post('/auth/verify-otp')
         .send({ phone: testPhone, otp: incorrectOtp })
@@ -100,6 +183,26 @@ describe('Authentication Module', () => {
 
       expect(verifyOtpResponse.body).toHaveProperty('error', 'Invalid OTP');
       expect(verifyOtpResponse.body).toHaveProperty('message', 'Invalid or expired OTP');
+    });
+
+    it('should return 404 when user is not found', async () => {
+      const testPhone = '+9999999999'; // Phone number that doesn't exist
+      const expectedOtp = '999999'; // Last 6 digits of testPhone
+
+      // Step 1: Send OTP (this will work even if user doesn't exist)
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      // Step 2: Try to verify OTP for non-existent user
+      const verifyOtpResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(404);
+
+      expect(verifyOtpResponse.body).toHaveProperty('error', 'Not found');
+      expect(verifyOtpResponse.body).toHaveProperty('message', 'User not found');
     });
   });
 });

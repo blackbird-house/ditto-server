@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { userService } from './service';
 import { CreateUserRequest, CreateUserResponse } from './types';
+import { authService } from '../auth/services/authService';
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -104,13 +105,14 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    // The user ID is attached by the auth middleware
+    const userId = (req as any).user?.id;
     const userData: Partial<CreateUserRequest> = req.body;
 
-    if (!id) {
-      res.status(400).json({
-        error: 'Bad request',
-        message: 'User ID is required'
+    if (!userId) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or missing authentication token'
       });
       return;
     }
@@ -136,7 +138,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    const updatedUser = userService.updateUser(id, userData);
+    const updatedUser = userService.updateUser(userId, userData);
 
     if (!updatedUser) {
       res.status(404).json({
@@ -174,6 +176,39 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         message: 'Failed to update user'
       });
     }
+  }
+};
+
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // The user ID is attached by the auth middleware
+    const userId = (req as any).user?.id;
+    
+    if (!userId) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or missing authentication token'
+      });
+      return;
+    }
+
+    const user = await authService.getMe(userId);
+    
+    if (!user) {
+      res.status(404).json({
+        error: 'Not found',
+        message: 'User not found'
+      });
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (error: any) {
+    console.error('Error getting user profile:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to get user profile'
+    });
   }
 };
 
