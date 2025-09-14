@@ -5,12 +5,17 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 import pingRoutes from './routes/ping';
+import userRoutes from './modules/users/routes';
 import config from './config';
+import { urlNormalization } from './middleware/urlNormalization';
 
 const app: Application = express();
 
 // Load OpenAPI specification
 const swaggerDocument = YAML.load(path.join(__dirname, '../openapi.yaml'));
+
+// URL normalization middleware (handles multiple slashes from API clients) - MUST be first
+app.use(urlNormalization);
 
 // Middleware
 app.use(express.json());
@@ -36,6 +41,7 @@ if (config.features.enableDebugRoutes) {
 
 // Routes
 app.use('/ping', pingRoutes);
+app.use('/users', userRoutes);
 
 // Debug routes (only in development and test)
 if (config.features.enableDebugRoutes) {

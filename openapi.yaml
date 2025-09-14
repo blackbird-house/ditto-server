@@ -8,14 +8,8 @@ info:
   license:
     name: MIT
 servers:
-  - url: http://localhost:${PORT}
+  - url: http://localhost:3000
     description: Local development server
-    variables:
-      PORT:
-        default: "3000"
-        description: Server port
-  - url: https://your-app-name.railway.app
-    description: Production server (Railway)
 paths:
   /ping:
     get:
@@ -81,8 +75,259 @@ paths:
                     example: "Debug endpoint not available in production"
       tags:
         - Debug
+  /users:
+    post:
+      summary: Create a new user
+      description: Creates a new user with the provided information
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - firstName
+                - lastName
+                - email
+                - phone
+              properties:
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                phone:
+                  type: string
+                  example: "+1234567890"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User created successfully"
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      firstName:
+                        type: string
+                        example: "John"
+                      lastName:
+                        type: string
+                        example: "Doe"
+                      email:
+                        type: string
+                        example: "john.doe@example.com"
+                      phone:
+                        type: string
+                        example: "+1234567890"
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: Bad Request - Missing or invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing required fields"
+                  message:
+                    type: string
+                    example: "firstName, lastName, email, and phone are required"
+        '409':
+          description: Conflict - User with email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conflict"
+                  message:
+                    type: string
+                    example: "User with this email already exists"
+      tags:
+        - Users
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      description: Retrieves a specific user by their ID
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
+      tags:
+        - Users
+    put:
+      summary: Update user by ID
+      description: Updates an existing user with the provided information
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: "John"
+                lastName:
+                  type: string
+                  example: "Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                phone:
+                  type: string
+                  example: "+1234567890"
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User updated successfully"
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: Bad Request - Missing or invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad request"
+                  message:
+                    type: string
+                    example: "At least one field (firstName, lastName, email, phone) must be provided for update"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
+        '409':
+          description: Conflict - User with email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conflict"
+                  message:
+                    type: string
+                    example: "User with this email already exists"
+      tags:
+        - Users
 tags:
   - name: Health
     description: Health check and monitoring endpoints
   - name: Debug
     description: Debug and development endpoints (development environment only)
+  - name: Users
+    description: User management endpoints

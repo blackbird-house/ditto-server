@@ -33,8 +33,17 @@ ditto-server/
 ├── src/               # TypeScript source code
 │   ├── config/        # Environment configurations
 │   │   └── index.ts   # Environment-specific settings
+│   ├── middleware/    # Express middleware
+│   │   ├── index.ts   # Middleware exports
+│   │   └── urlNormalization.ts # URL normalization middleware
 │   ├── routes/        # API endpoint modules
 │   │   └── ping.ts    # Health check endpoint
+│   ├── modules/       # Feature modules
+│   │   └── users/     # User management module
+│   │       ├── types.ts      # User type definitions
+│   │       ├── service.ts    # User business logic (in-memory store)
+│   │       ├── controller.ts # User HTTP handlers
+│   │       └── routes.ts     # User routes
 │   ├── types/         # TypeScript type definitions
 │   │   └── index.ts   # Shared types and interfaces
 │   ├── app.ts         # Express app configuration
@@ -44,7 +53,8 @@ ditto-server/
 │   ├── ping.test.ts   # Ping endpoint tests
 │   ├── server.test.ts # Server configuration tests
 │   ├── environments.test.ts # Environment tests
-│   └── rate-limiting.test.ts # Rate limiting tests
+│   ├── rate-limiting.test.ts # Rate limiting tests
+│   └── users.test.ts  # User module tests
 ├── package.json       # Project dependencies and scripts
 ├── tsconfig.json      # TypeScript configuration
 ├── jest.config.js     # Jest testing configuration
@@ -86,6 +96,11 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 ### Health Check
 - **GET** `/ping` - Returns 204 No Content (health check)
 
+### User Management
+- **POST** `/users` - Create a new user
+- **PUT** `/users/:id` - Update user by ID
+- **GET** `/users/:id` - Get user by ID
+
 ### Debug (Development Only)
 - **GET** `/debug/env` - Returns environment configuration (dev only)
 
@@ -124,6 +139,9 @@ To use the API client:
 - **OpenAPI 3.0** - API specification standard
 - **Jest** - Testing framework
 - **Supertest** - HTTP testing
+- **Node.js Crypto** - UUID generation (built-in)
+- **In-Memory Storage** - Development data persistence
+- **Custom Middleware** - URL normalization for API client compatibility
 
 ## 🌍 Environment Configuration
 
