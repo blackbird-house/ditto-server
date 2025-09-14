@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Ditto Server API
+  description: A ready-to-use easy-to-clone REST API server
+  version: 1.0.0
+  contact:
+    name: Ditto Server
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+paths:
+  /ping:
+    get:
+      summary: Health check endpoint
+      description: Returns a 204 No Content status to indicate the server is running
+      operationId: ping
+      responses:
+        '204':
+          description: No Content - Server is healthy
+          content: {}
+      tags:
+        - Health
+tags:
+  - name: Health
+    description: Health check endpoints
