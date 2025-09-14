@@ -6,6 +6,7 @@ import YAML from 'yamljs';
 import path from 'path';
 import pingRoutes from './routes/ping';
 import userRoutes from './modules/users/routes';
+import authRoutes from './modules/auth/routes';
 import config from './config';
 import { urlNormalization } from './middleware/urlNormalization';
 
@@ -42,6 +43,7 @@ if (config.features.enableDebugRoutes) {
 // Routes
 app.use('/ping', pingRoutes);
 app.use('/users', userRoutes);
+app.use('/auth', authRoutes);
 
 // Debug routes (only in development and test)
 if (config.features.enableDebugRoutes) {
@@ -51,6 +53,19 @@ if (config.features.enableDebugRoutes) {
       port: config.port,
       features: config.features
     });
+  });
+
+  app.get('/debug/last-otp', (_req, res) => {
+    const lastOtp = (global as any).lastOtp;
+    if (lastOtp) {
+      res.json({
+        phone: lastOtp.phone,
+        otp: lastOtp.otp,
+        otpId: lastOtp.otpId
+      });
+    } else {
+      res.json({ message: 'No OTP sent yet' });
+    }
   });
 }
 
