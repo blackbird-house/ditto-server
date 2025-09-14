@@ -55,9 +55,30 @@ ditto-server/
 ├── railway.dev.json  # Development deployment config
 ├── openapi.yaml      # API specification
 ├── DEPLOYMENT.md     # Deployment instructions
+├── BRANCHING.md      # Git branching strategy
 ├── .gitignore        # Git ignore rules
 └── README.md         # This file
 ```
+
+## 🌿 Git Branching Strategy
+
+This project follows a **Git Flow** strategy with three main branches:
+
+- **`develop`** - Active development (unreliable, for testing)
+- **`staging`** - Pre-production (stable, ready for testing)
+- **`main`** - Production (customer-facing, stable)
+
+### **Workflow:**
+```
+develop → staging → main
+```
+
+### **Branch Usage:**
+- **New features** → Develop in `develop` branch
+- **Ready for testing** → Promote to `staging` branch
+- **Ready for release** → Promote to `main` branch
+
+See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 
 ## 🔗 Available Endpoints
 
@@ -181,7 +202,9 @@ yarn test:watch
 ## 📊 Project Status
 
 **Last Updated:** September 14, 2025  
+**Current Branch:** `develop`  
 **Test Status:** ✅ All tests passing (27/27)  
 **TypeScript:** ✅ Fully converted and type-safe  
 **Environments:** ✅ All 4 environments configured and tested  
-**Coverage:** ✅ 70.27% statement coverage, 83.33% branch coverage
+**Coverage:** ✅ 70.27% statement coverage, 83.33% branch coverage  
+**Branching:** ✅ Git Flow strategy implemented (develop → staging → main)
