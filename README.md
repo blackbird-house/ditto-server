@@ -108,7 +108,7 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 - **POST** `/users` - Create a new user
 - **GET** `/users/me` - Get authenticated user profile (requires authentication)
 - **PUT** `/users/me` - Update authenticated user profile (requires authentication)
-- **GET** `/users/:id` - Get user by ID (public)
+- **GET** `/users/:id` - Get user by ID (returns only id, firstName, lastName - public info only)
 
 ### Authentication
 - **POST** `/auth/send-otp` - Send OTP to phone number (returns 204)

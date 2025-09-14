@@ -25,6 +25,12 @@ export interface CreateUserResponse {
   updatedAt: string;
 }
 
+export interface PublicUserResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface UserService {
   createUser(userData: CreateUserRequest): User;
   getUserById(id: string): User | null;

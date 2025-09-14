@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { userService } from './service';
-import { CreateUserRequest, CreateUserResponse } from './types';
+import { CreateUserRequest, CreateUserResponse, PublicUserResponse } from './types';
 import { authService } from '../auth/services/authService';
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -81,14 +81,10 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const response: CreateUserResponse = {
+    const response: PublicUserResponse = {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
     };
 
     res.status(200).json({

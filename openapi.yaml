@@ -234,16 +234,6 @@ paths:
                         type: string
                       lastName:
                         type: string
-                      email:
-                        type: string
-                      phone:
-                        type: string
-                      createdAt:
-                        type: string
-                        format: date-time
-                      updatedAt:
-                        type: string
-                        format: date-time
         '404':
           description: User not found
           content:

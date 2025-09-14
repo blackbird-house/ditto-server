@@ -377,8 +377,12 @@ describe('User Module', () => {
       expect(response.body.user).toHaveProperty('id', userId);
       expect(response.body.user).toHaveProperty('firstName', 'Bob');
       expect(response.body.user).toHaveProperty('lastName', 'Johnson');
-      expect(response.body.user).toHaveProperty('email', 'bob.johnson@example.com');
-      expect(response.body.user).toHaveProperty('phone', '+1122334455');
+      
+      // Should NOT include sensitive information
+      expect(response.body.user).not.toHaveProperty('email');
+      expect(response.body.user).not.toHaveProperty('phone');
+      expect(response.body.user).not.toHaveProperty('createdAt');
+      expect(response.body.user).not.toHaveProperty('updatedAt');
     });
 
     it('should return 404 for non-existent user ID', async () => {
