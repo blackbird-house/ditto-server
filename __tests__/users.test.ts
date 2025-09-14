@@ -353,7 +353,7 @@ describe('User Module', () => {
   });
 
   describe('GET /users/:id', () => {
-    it('should return user by ID', async () => {
+    it('should return user by ID with authentication', async () => {
       // Create a user first
       const userData = {
         firstName: 'Bob',
@@ -369,8 +369,22 @@ describe('User Module', () => {
 
       const userId = createResponse.body.user.id;
 
+      // Authenticate to get token
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: '+1122334455' })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: '+1122334455', otp: '334455' })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
+
       const response = await request(app)
         .get(`/users/${userId}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
       expect(response.body).toHaveProperty('user');
@@ -385,9 +399,54 @@ describe('User Module', () => {
       expect(response.body.user).not.toHaveProperty('updatedAt');
     });
 
-    it('should return 404 for non-existent user ID', async () => {
+    it('should return 401 for missing authentication token', async () => {
+      const response = await request(app)
+        .get('/users/some-id')
+        .expect(401);
+
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+      expect(response.body).toHaveProperty('message', 'Authorization header is required');
+    });
+
+    it('should return 401 for invalid authentication token', async () => {
+      const response = await request(app)
+        .get('/users/some-id')
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401);
+
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+      expect(response.body).toHaveProperty('message', 'Invalid or expired token');
+    });
+
+    it('should return 404 for non-existent user ID with valid authentication', async () => {
+      // Create a user and authenticate
+      const userData = {
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        phone: '+1111111111'
+      };
+
+      await request(app)
+        .post('/users')
+        .send(userData)
+        .expect(201);
+
+      await request(app)
+        .post('/auth/send-otp')
+        .send({ phone: '+1111111111' })
+        .expect(204);
+
+      const verifyResponse = await request(app)
+        .post('/auth/verify-otp')
+        .send({ phone: '+1111111111', otp: '111111' })
+        .expect(200);
+
+      const token = verifyResponse.body.token;
+
       const response = await request(app)
         .get('/users/non-existent-id')
+        .set('Authorization', `Bearer ${token}`)
         .expect(404);
 
       expect(response.body).toHaveProperty('error', 'Not found');

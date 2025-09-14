@@ -13,7 +13,7 @@ router.get('/me', authMiddleware, getMe);
 // PUT /users/me - Update authenticated user profile
 router.put('/me', authMiddleware, updateUser);
 
-// GET /users/:id - Get user by ID
-router.get('/:id', getUserById);
+// GET /users/:id - Get user by ID (requires authentication)
+router.get('/:id', authMiddleware, getUserById);
 
 export default router;

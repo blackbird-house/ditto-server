@@ -208,8 +208,10 @@ paths:
   /users/{id}:
     get:
       summary: Get user by ID
-      description: Retrieves a specific user by their ID
+      description: Retrieves a specific user by their ID (requires authentication)
       operationId: getUserById
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -234,6 +236,19 @@ paths:
                         type: string
                       lastName:
                         type: string
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid or missing authentication token"
         '404':
           description: User not found
           content:
