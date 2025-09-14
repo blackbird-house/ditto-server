@@ -26,7 +26,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const user = userService.createUser(userData);
+    const user = await userService.createUser(userData);
 
     // Convert dates to ISO strings for response
     const response: CreateUserResponse = {
@@ -71,7 +71,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
     
-    const user = userService.getUserById(id);
+    const user = await userService.getUserById(id);
 
     if (!user) {
       res.status(404).json({
@@ -134,7 +134,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    const updatedUser = userService.updateUser(userId, userData);
+    const updatedUser = await userService.updateUser(userId, userData);
 
     if (!updatedUser) {
       res.status(404).json({
@@ -155,10 +155,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       updatedAt: updatedUser.updatedAt.toISOString(),
     };
 
-    res.status(200).json({
-      message: 'User updated successfully',
-      user: response
-    });
+    res.status(200).json(response);
   } catch (error) {
     if (error instanceof Error && error.message === 'User with this email already exists') {
       res.status(409).json({

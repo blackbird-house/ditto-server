@@ -99,6 +99,28 @@ develop → staging → main
 
 See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 
+## 🗄️ Database Configuration
+
+### Development Environment
+- **Database Type**: SQLite (file-based)
+- **Location**: `./data/ditto-dev.db`
+- **Setup**: No external setup required - database is created automatically
+- **Features**: 
+  - Automatic table creation on startup
+  - Persistent data storage
+  - Easy to reset (delete the .db file)
+
+### Production Environment
+- **Database Type**: MongoDB (configurable)
+- **Configuration**: Set `DATABASE_URL` environment variable
+- **Examples**:
+  - MongoDB: `mongodb://localhost:27017/ditto-prod`
+  - PostgreSQL: `postgresql://user:password@localhost:5432/ditto_prod`
+
+### Database Schema
+- **Users Table**: Stores user information (id, firstName, lastName, email, phone, timestamps)
+- **OTP Sessions Table**: Stores OTP verification sessions (id, phone, otp, expiresAt, createdAt)
+
 ## 🔗 Available Endpoints
 
 ### Health Check

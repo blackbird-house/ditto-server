@@ -136,15 +136,13 @@ describe('User Module', () => {
         .send(updateData)
         .expect(200);
 
-      expect(response.body).toHaveProperty('message', 'User updated successfully');
-      expect(response.body).toHaveProperty('user');
-      expect(response.body.user).toHaveProperty('id', userId);
-      expect(response.body.user).toHaveProperty('firstName', 'Updated');
-      expect(response.body.user).toHaveProperty('lastName', 'Name');
-      expect(response.body.user).toHaveProperty('email', 'updated@example.com');
-      expect(response.body.user).toHaveProperty('phone', '+2222222222');
-      expect(response.body.user).toHaveProperty('createdAt');
-      expect(response.body.user).toHaveProperty('updatedAt');
+      expect(response.body).toHaveProperty('id', userId);
+      expect(response.body).toHaveProperty('firstName', 'Updated');
+      expect(response.body).toHaveProperty('lastName', 'Name');
+      expect(response.body).toHaveProperty('email', 'updated@example.com');
+      expect(response.body).toHaveProperty('phone', '+2222222222');
+      expect(response.body).toHaveProperty('createdAt');
+      expect(response.body).toHaveProperty('updatedAt');
     });
 
     it('should update user with partial data', async () => {
@@ -188,10 +186,9 @@ describe('User Module', () => {
         .send(updateData)
         .expect(200);
 
-      expect(response.body).toHaveProperty('message', 'User updated successfully');
-      expect(response.body.user).toHaveProperty('firstName', 'UpdatedFirstName');
-      expect(response.body.user).toHaveProperty('lastName', 'Name'); // Should remain unchanged
-      expect(response.body.user).toHaveProperty('email', 'original@example.com'); // Should remain unchanged
+      expect(response.body).toHaveProperty('firstName', 'UpdatedFirstName');
+      expect(response.body).toHaveProperty('lastName', 'Name'); // Should remain unchanged
+      expect(response.body).toHaveProperty('email', 'original@example.com'); // Should remain unchanged
     });
 
     it('should return 400 for empty update data', async () => {

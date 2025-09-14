@@ -25,8 +25,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       max: 1000 // limit each IP to 1000 requests per windowMs
     },
     database: {
-      // Add database config for dev when needed
-      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-dev'
+      url: process.env['DATABASE_URL'] || './data/ditto-dev.db',
+      type: 'sqlite'
     },
     features: {
       enableDebugRoutes: true,
@@ -48,7 +48,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       max: 1000 // limit each IP to 1000 requests per windowMs
     },
     database: {
-      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-test'
+      url: process.env['DATABASE_URL'] || './data/ditto-test.db',
+      type: 'sqlite'
     },
     features: {
       enableDebugRoutes: true,
@@ -70,7 +71,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       max: 500 // limit each IP to 500 requests per windowMs
     },
     database: {
-      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-staging'
+      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-staging',
+      type: 'mongodb'
     },
     features: {
       enableDebugRoutes: false,
@@ -92,7 +94,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       max: 100 // limit each IP to 100 requests per windowMs
     },
     database: {
-      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-prod'
+      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-prod',
+      type: 'mongodb'
     },
     features: {
       enableDebugRoutes: false,

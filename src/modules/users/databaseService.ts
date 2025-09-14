@@ -1,0 +1,92 @@
+import { User, CreateUserRequest, UserService } from './types';
+import { randomUUID } from 'crypto';
+import { databaseService } from '../../database';
+
+class DatabaseUserService implements UserService {
+  async createUser(userData: CreateUserRequest): Promise<User> {
+    // Check if user with email already exists
+    const existingUser = await this.getUserByEmail(userData.email);
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+
+    const now = new Date();
+    const user: User = {
+      id: randomUUID(),
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      phone: userData.phone,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await databaseService.createUser(user);
+    return user;
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    const user = await databaseService.getUserById(id);
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      createdAt: new Date(user.createdAt),
+      updatedAt: new Date(user.updatedAt),
+    };
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    const user = await databaseService.getUserByEmail(email);
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      createdAt: new Date(user.createdAt),
+      updatedAt: new Date(user.updatedAt),
+    };
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    // This method is not implemented in the database service yet
+    // For now, return empty array
+    return [];
+  }
+
+  async updateUser(id: string, userData: Partial<CreateUserRequest>): Promise<User | null> {
+    // Check if email is being updated and if it already exists
+    if (userData.email) {
+      const existingUser = await this.getUserByEmail(userData.email);
+      if (existingUser && existingUser.id !== id) {
+        throw new Error('User with this email already exists');
+      }
+    }
+
+    const updatedUser = await databaseService.updateUser(id, userData);
+    if (!updatedUser) return null;
+
+    return {
+      id: updatedUser.id,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      createdAt: new Date(updatedUser.createdAt),
+      updatedAt: new Date(updatedUser.updatedAt),
+    };
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return await databaseService.deleteUser(id);
+  }
+}
+
+export { DatabaseUserService };

@@ -1,6 +1,7 @@
 import { AuthService, VerifyOtpResponse, AuthToken } from '../types';
 import { MockOtpService } from './mockOtpService';
 import { userService } from '../../users/service';
+import { databaseService } from '../../../database';
 
 export class AuthServiceImpl implements AuthService {
   private otpService: MockOtpService;
@@ -61,7 +62,7 @@ export class AuthServiceImpl implements AuthService {
       }
 
       // OTP is valid, find user
-      const user = this.findUserByPhone(phone);
+      const user = await this.findUserByPhone(phone);
       
       if (!user) {
         // User not found - return 404 error
@@ -119,7 +120,7 @@ export class AuthServiceImpl implements AuthService {
 
   async getMe(userId: string): Promise<{ id: string; phone: string; firstName?: string; lastName?: string; email?: string; createdAt: string; updatedAt: string } | null> {
     try {
-      const user = userService.getUserById(userId);
+      const user = await userService.getUserById(userId);
       if (!user) {
         return null;
       }
@@ -138,11 +139,9 @@ export class AuthServiceImpl implements AuthService {
     }
   }
 
-  private findUserByPhone(phone: string) {
-    // Find user by phone number in the user service
-    // This is a simple implementation - in production, add a method to userService
-    const allUsers = (userService as any).getAllUsers();
-    return allUsers.find((user: any) => user.phone === phone);
+  private async findUserByPhone(phone: string) {
+    // Find user by phone number using database service
+    return await databaseService.getUserByPhone(phone);
   }
 }
 
