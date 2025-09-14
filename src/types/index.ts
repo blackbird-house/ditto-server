@@ -12,6 +12,7 @@ export interface EnvironmentConfig {
   };
   database: {
     url: string;
+    type: 'sqlite' | 'mongodb' | 'postgresql';
   };
   features: {
     enableDebugRoutes: boolean;

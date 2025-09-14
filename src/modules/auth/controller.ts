@@ -13,8 +13,8 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await authService.sendOtp(phone);
-    res.status(200).json(result);
+    await authService.sendOtp(phone);
+    res.status(204).send();
   } catch (error: any) {
     if (error.message === 'Invalid phone number format') {
       res.status(400).json({
@@ -61,6 +61,11 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
         error: 'Invalid OTP',
         message: error.message
       });
+    } else if (error.message === 'User not found') {
+      res.status(404).json({
+        error: 'Not found',
+        message: 'User not found'
+      });
     } else {
       console.error('Error verifying OTP:', error);
       res.status(500).json({
@@ -70,3 +75,4 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+

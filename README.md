@@ -39,11 +39,18 @@ ditto-server/
 │   ├── routes/        # API endpoint modules
 │   │   └── ping.ts    # Health check endpoint
 │   ├── modules/       # Feature modules
-│   │   └── users/     # User management module
-│   │       ├── types.ts      # User type definitions
-│   │       ├── service.ts    # User business logic (in-memory store)
-│   │       ├── controller.ts # User HTTP handlers
-│   │       └── routes.ts     # User routes
+│   │   ├── users/     # User management module
+│   │   │   ├── types.ts      # User type definitions
+│   │   │   ├── service.ts    # User business logic (in-memory store)
+│   │   │   ├── controller.ts # User HTTP handlers
+│   │   │   └── routes.ts     # User routes
+│   │   └── auth/      # Authentication module
+│   │       ├── types.ts      # Auth type definitions
+│   │       ├── controller.ts # Auth HTTP handlers
+│   │       ├── routes.ts     # Auth routes
+│   │       └── services/     # Auth services
+│   │           ├── authService.ts    # Core auth logic
+│   │           └── mockOtpService.ts # Mock OTP service
 │   ├── types/         # TypeScript type definitions
 │   │   └── index.ts   # Shared types and interfaces
 │   ├── app.ts         # Express app configuration
@@ -54,7 +61,8 @@ ditto-server/
 │   ├── server.test.ts # Server configuration tests
 │   ├── environments.test.ts # Environment tests
 │   ├── rate-limiting.test.ts # Rate limiting tests
-│   └── users.test.ts  # User module tests
+│   ├── users.test.ts  # User module tests
+│   └── auth.test.ts   # Authentication module tests
 ├── package.json       # Project dependencies and scripts
 ├── tsconfig.json      # TypeScript configuration
 ├── jest.config.js     # Jest testing configuration
@@ -91,6 +99,28 @@ develop → staging → main
 
 See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 
+## 🗄️ Database Configuration
+
+### Development Environment
+- **Database Type**: SQLite (file-based)
+- **Location**: `./data/ditto-dev.db`
+- **Setup**: No external setup required - database is created automatically
+- **Features**: 
+  - Automatic table creation on startup
+  - Persistent data storage
+  - Easy to reset (delete the .db file)
+
+### Production Environment
+- **Database Type**: MongoDB (configurable)
+- **Configuration**: Set `DATABASE_URL` environment variable
+- **Examples**:
+  - MongoDB: `mongodb://localhost:27017/ditto-prod`
+  - PostgreSQL: `postgresql://user:password@localhost:5432/ditto_prod`
+
+### Database Schema
+- **Users Table**: Stores user information (id, firstName, lastName, email, phone, timestamps)
+- **OTP Sessions Table**: Stores OTP verification sessions (id, phone, otp, expiresAt, createdAt)
+
 ## 🔗 Available Endpoints
 
 ### Health Check
@@ -98,11 +128,17 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 
 ### User Management
 - **POST** `/users` - Create a new user
-- **PUT** `/users/:id` - Update user by ID
-- **GET** `/users/:id` - Get user by ID
+- **GET** `/users/me` - Get authenticated user profile (requires authentication)
+- **PUT** `/users/me` - Update authenticated user profile (requires authentication)
+- **GET** `/users/:id` - Get user by ID (returns only id, firstName, lastName - requires authentication)
+
+### Authentication
+- **POST** `/auth/send-otp` - Send OTP to phone number (returns 204)
+- **POST** `/auth/verify-otp` - Verify OTP and get authentication token
 
 ### Debug (Development Only)
 - **GET** `/debug/env` - Returns environment configuration (dev only)
+- **GET** `/debug/last-otp` - Get last generated OTP for testing (dev only)
 
 ### API Documentation (Development Only)
 - **GET** `/docs` - Interactive Swagger UI documentation (dev/test only)
@@ -116,9 +152,10 @@ The project includes `api-access.paw` - a Paw API client file for easy endpoint 
 - **Purpose**: Pre-configured API requests for all endpoints
 - **Usage**: Import into Paw app to quickly test endpoints
 - **Features**: 
-  - Pre-configured requests for `/ping` and `/debug/env`
+  - Pre-configured requests for all endpoints
   - Environment-specific configurations
   - Ready-to-use headers and parameters
+  - Authentication token handling
 
 To use the API client:
 1. Open Paw app
@@ -142,6 +179,9 @@ To use the API client:
 - **Node.js Crypto** - UUID generation (built-in)
 - **In-Memory Storage** - Development data persistence
 - **Custom Middleware** - URL normalization for API client compatibility
+- **JWT Authentication** - Token-based authentication (base64 encoded)
+- **OTP Service** - Phone-based one-time password authentication
+- **Mock Services** - Development-friendly mock implementations
 
 ## 🌍 Environment Configuration
 
@@ -166,13 +206,65 @@ To use the API client:
 - **Log Level**: Warn
 - **Start**: `yarn start`
 
+## 🔐 Authentication
+
+The API uses phone-based OTP (One-Time Password) authentication:
+
+### **Authentication Flow**
+1. **Register**: `POST /users` (create user account)
+2. **Request OTP**: `POST /auth/send-otp` (send OTP to phone)
+3. **Verify OTP**: `POST /auth/verify-otp` (get authentication token)
+4. **Use Token**: Include `Authorization: Bearer <token>` header for protected endpoints
+
+### **Protected Endpoints**
+- `GET /users/me` - Get authenticated user profile
+- `PUT /users/me` - Update authenticated user profile
+
+### **Token Details**
+- **Format**: JWT (base64 encoded)
+- **Expiration**: 5 minutes
+- **Header**: `Authorization: Bearer <token>`
+
+### **Development OTP**
+In development, the OTP is the last 6 digits of the phone number (e.g., phone `+1234567890` → OTP `567890`)
+
+## ⚠️ Error Handling
+
+The API returns consistent JSON error responses for all error scenarios:
+
+### **Error Response Format**
+```json
+{
+  "error": "Error Type",
+  "message": "Detailed error message"
+}
+```
+
+### **Common Error Codes**
+- **400** - Bad Request (missing/invalid data)
+- **401** - Unauthorized (missing/invalid authentication)
+- **404** - Not Found (resource doesn't exist)
+- **409** - Conflict (duplicate data)
+- **429** - Too Many Requests (rate limit exceeded)
+- **500** - Internal Server Error
+
+### **404 Handler**
+All undefined routes return a proper JSON 404 response instead of HTML error pages:
+```json
+{
+  "error": "Not found",
+  "message": "Cannot PUT /users/some-id"
+}
+```
+
 ## 📝 Development
 
 This project uses a modular route structure for easy scalability. To add new endpoints:
 
-1. Create a new route file in the `routes/` directory
-2. Import and register the route in `server.js`
+1. Create a new route file in the `modules/` directory
+2. Import and register the route in `src/app.ts`
 3. Update this README with the new endpoint documentation
+4. Add tests in the `__tests__/` directory
 
 ## 🚀 Deployment
 
@@ -219,9 +311,12 @@ yarn test:watch
 ## 📋 TODO
 
 - [ ] Add more API endpoints as needed
-- [ ] Implement middleware for logging, authentication, etc.
 - [ ] Add database integration
 - [x] Add comprehensive testing suite
 - [x] Convert to TypeScript
 - [x] Add API documentation (Swagger/OpenAPI) ✅
+- [x] Implement phone-based OTP authentication ✅
+- [x] Add user management with authentication ✅
+- [x] Add proper error handling (JSON responses) ✅
+- [x] Add authentication middleware ✅
 

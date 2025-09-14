@@ -1,5 +1,7 @@
 import { User, CreateUserRequest, UserService } from './types';
 import { randomUUID } from 'crypto';
+import config from '../../config';
+import { DatabaseUserService } from './databaseService';
 
 class InMemoryUserService implements UserService {
   private users: Map<string, User> = new Map();
@@ -72,5 +74,7 @@ class InMemoryUserService implements UserService {
   }
 }
 
-// Export singleton instance
-export const userService = new InMemoryUserService();
+// Export appropriate service based on configuration
+export const userService = config.database.type === 'sqlite' 
+  ? new DatabaseUserService() 
+  : new InMemoryUserService();

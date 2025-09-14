@@ -208,8 +208,10 @@ paths:
   /users/{id}:
     get:
       summary: Get user by ID
-      description: Retrieves a specific user by their ID
+      description: Retrieves a specific user by their ID (requires authentication)
       operationId: getUserById
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -234,16 +236,19 @@ paths:
                         type: string
                       lastName:
                         type: string
-                      email:
-                        type: string
-                      phone:
-                        type: string
-                      createdAt:
-                        type: string
-                        format: date-time
-                      updatedAt:
-                        type: string
-                        format: date-time
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid or missing authentication token"
         '404':
           description: User not found
           content:
@@ -259,17 +264,91 @@ paths:
                     example: "User not found"
       tags:
         - Users
+  /users/me:
+    get:
+      summary: Get authenticated user profile
+      description: Returns the profile information of the currently authenticated user
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "46411103-be20-423a-9a54-3cce3fa62fe5"
+                  phone:
+                    type: string
+                    example: "+1234567890"
+                  firstName:
+                    type: string
+                    example: "User"
+                  lastName:
+                    type: string
+                    example: "User"
+                  email:
+                    type: string
+                    example: "+1234567890@temp.com"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:32:26.000Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:32:26.000Z"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid or missing authentication token"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                  message:
+                    type: string
+                    example: "Failed to get user profile"
+      tags:
+        - Users
     put:
-      summary: Update user by ID
-      description: Updates an existing user with the provided information
-      operationId: updateUser
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: User ID
+      summary: Update authenticated user profile
+      description: Updates the profile information of the currently authenticated user
+      operationId: updateMe
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -298,28 +377,29 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  id:
                     type: string
-                    example: "User updated successfully"
-                  user:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      firstName:
-                        type: string
-                      lastName:
-                        type: string
-                      email:
-                        type: string
-                      phone:
-                        type: string
-                      createdAt:
-                        type: string
-                        format: date-time
-                      updatedAt:
-                        type: string
-                        format: date-time
+                    example: "46411103-be20-423a-9a54-3cce3fa62fe5"
+                  firstName:
+                    type: string
+                    example: "John"
+                  lastName:
+                    type: string
+                    example: "Doe"
+                  email:
+                    type: string
+                    example: "john.doe@example.com"
+                  phone:
+                    type: string
+                    example: "+1234567890"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:32:26.000Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:47:30.000Z"
         '400':
           description: Bad Request - Missing or invalid data
           content:
@@ -333,6 +413,19 @@ paths:
                   message:
                     type: string
                     example: "At least one field (firstName, lastName, email, phone) must be provided for update"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid or missing authentication token"
         '404':
           description: User not found
           content:
@@ -359,6 +452,19 @@ paths:
                   message:
                     type: string
                     example: "User with this email already exists"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                  message:
+                    type: string
+                    example: "Failed to update user"
       tags:
         - Users
   /auth/send-otp:
@@ -381,20 +487,9 @@ paths:
                   example: "+1234567890"
                   description: Phone number in international format
       responses:
-        '200':
+        '204':
           description: OTP sent successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "OTP sent successfully"
-                  otpId:
-                    type: string
-                    example: "123e4567-e89b-12d3-a456-426614174000"
-                    description: Unique identifier for the OTP session
+          content: {}
         '400':
           description: Bad Request - Invalid phone number format
           content:
@@ -468,31 +563,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: "OTP verified successfully"
                   token:
                     type: string
                     example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9"
                     description: JWT authentication token (valid for 5 minutes)
-                  user:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        example: "46411103-be20-423a-9a54-3cce3fa62fe5"
-                      phone:
-                        type: string
-                        example: "+1234567890"
-                      firstName:
-                        type: string
-                        example: "User"
-                      lastName:
-                        type: string
-                        example: "User"
-                      email:
-                        type: string
-                        example: "+1234567890@temp.com"
         '400':
           description: Bad Request - Invalid or missing data
           content:
@@ -519,6 +593,19 @@ paths:
                   message:
                     type: string
                     example: "Invalid or expired OTP"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
         '500':
           description: Internal Server Error
           content:
@@ -534,6 +621,12 @@ paths:
                     example: "Failed to verify OTP"
       tags:
         - Authentication
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 tags:
   - name: Health
     description: Health check and monitoring endpoints

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { userService } from './service';
-import { CreateUserRequest, CreateUserResponse } from './types';
+import { CreateUserRequest, CreateUserResponse, PublicUserResponse } from './types';
+import { authService } from '../auth/services/authService';
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -25,7 +26,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const user = userService.createUser(userData);
+    const user = await userService.createUser(userData);
 
     // Convert dates to ISO strings for response
     const response: CreateUserResponse = {
@@ -70,7 +71,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
     
-    const user = userService.getUserById(id);
+    const user = await userService.getUserById(id);
 
     if (!user) {
       res.status(404).json({
@@ -80,14 +81,10 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const response: CreateUserResponse = {
+    const response: PublicUserResponse = {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
     };
 
     res.status(200).json({
@@ -104,13 +101,14 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    // The user ID is attached by the auth middleware
+    const userId = (req as any).user?.id;
     const userData: Partial<CreateUserRequest> = req.body;
 
-    if (!id) {
-      res.status(400).json({
-        error: 'Bad request',
-        message: 'User ID is required'
+    if (!userId) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or missing authentication token'
       });
       return;
     }
@@ -136,7 +134,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    const updatedUser = userService.updateUser(id, userData);
+    const updatedUser = await userService.updateUser(userId, userData);
 
     if (!updatedUser) {
       res.status(404).json({
@@ -157,10 +155,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       updatedAt: updatedUser.updatedAt.toISOString(),
     };
 
-    res.status(200).json({
-      message: 'User updated successfully',
-      user: response
-    });
+    res.status(200).json(response);
   } catch (error) {
     if (error instanceof Error && error.message === 'User with this email already exists') {
       res.status(409).json({
@@ -174,6 +169,39 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         message: 'Failed to update user'
       });
     }
+  }
+};
+
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // The user ID is attached by the auth middleware
+    const userId = (req as any).user?.id;
+    
+    if (!userId) {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or missing authentication token'
+      });
+      return;
+    }
+
+    const user = await authService.getMe(userId);
+    
+    if (!user) {
+      res.status(404).json({
+        error: 'Not found',
+        message: 'User not found'
+      });
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (error: any) {
+    console.error('Error getting user profile:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to get user profile'
+    });
   }
 };
 
