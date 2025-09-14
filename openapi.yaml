@@ -1,25 +1,88 @@
 openapi: 3.0.3
 info:
   title: Ditto Server API
-  description: A ready-to-use easy-to-clone REST API server
+  description: A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript
   version: 1.0.0
   contact:
     name: Ditto Server
+  license:
+    name: MIT
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:${PORT}
     description: Local development server
+    variables:
+      PORT:
+        default: "3000"
+        description: Server port
+  - url: https://your-app-name.railway.app
+    description: Production server (Railway)
 paths:
   /ping:
     get:
       summary: Health check endpoint
-      description: Returns a 204 No Content status to indicate the server is running
+      description: Returns a 204 No Content status to indicate the server is running and healthy
       operationId: ping
       responses:
         '204':
-          description: No Content - Server is healthy
+          description: No Content - Server is healthy and responsive
           content: {}
+        '429':
+          description: Too Many Requests - Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Too many requests, please try again later."
       tags:
         - Health
+  /debug/env:
+    get:
+      summary: Environment debug endpoint
+      description: Returns current environment configuration and feature flags (development only)
+      operationId: debugEnv
+      responses:
+        '200':
+          description: Environment configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  environment:
+                    type: string
+                    example: "development"
+                  port:
+                    type: integer
+                    example: 3000
+                  features:
+                    type: object
+                    properties:
+                      enableDebugRoutes:
+                        type: boolean
+                        example: true
+                      enableMockData:
+                        type: boolean
+                        example: true
+                      enableExperimentalFeatures:
+                        type: boolean
+                        example: true
+        '404':
+          description: Not Found - Debug endpoint not available in this environment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Debug endpoint not available in production"
+      tags:
+        - Debug
 tags:
   - name: Health
-    description: Health check endpoints
+    description: Health check and monitoring endpoints
+  - name: Debug
+    description: Debug and development endpoints (development environment only)

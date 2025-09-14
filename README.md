@@ -24,7 +24,7 @@ yarn start
 yarn type-check
 ```
 
-The server will start on `http://localhost:3000`
+The server will start on `http://localhost:${PORT}` (default port: 3000)
 
 ## 📁 Project Structure
 
@@ -54,6 +54,7 @@ ditto-server/
 ├── railway.staging.json # Staging deployment config
 ├── railway.dev.json  # Development deployment config
 ├── openapi.yaml      # API specification
+├── api-access.paw    # Paw API client for testing
 ├── DEPLOYMENT.md     # Deployment instructions
 ├── BRANCHING.md      # Git branching strategy
 ├── .gitignore        # Git ignore rules
@@ -88,6 +89,28 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 ### Debug (Development Only)
 - **GET** `/debug/env` - Returns environment configuration (dev only)
 
+### API Documentation (Development Only)
+- **GET** `/docs` - Interactive Swagger UI documentation (dev/test only)
+
+## 🧪 API Testing
+
+### Paw API Client
+The project includes `api-access.paw` - a Paw API client file for easy endpoint testing:
+
+- **File**: `api-access.paw` (in project root)
+- **Purpose**: Pre-configured API requests for all endpoints
+- **Usage**: Import into Paw app to quickly test endpoints
+- **Features**: 
+  - Pre-configured requests for `/ping` and `/debug/env`
+  - Environment-specific configurations
+  - Ready-to-use headers and parameters
+
+To use the API client:
+1. Open Paw app
+2. Import the `api-access.paw` file
+3. Select the appropriate environment (development/staging/production)
+4. Run requests to test endpoints
+
 ## 🛠️ Technology Stack
 
 - **Node.js** - Runtime environment
@@ -97,6 +120,8 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 - **CORS** - Cross-origin resource sharing
 - **Rate Limiting** - Request throttling
 - **Environment Configuration** - Multi-environment support
+- **Swagger UI** - Interactive API documentation
+- **OpenAPI 3.0** - API specification standard
 - **Jest** - Testing framework
 - **Supertest** - HTTP testing
 
@@ -104,7 +129,7 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 
 ### Development Environment
 - **Purpose**: Unreliable playground for backend engineers
-- **Features**: Debug routes, experimental features, mock data
+- **Features**: Debug routes, experimental features, mock data, detailed startup logs
 - **Rate Limit**: 1000 requests/15min
 - **Log Level**: Debug
 - **Start**: `yarn dev`
@@ -118,7 +143,7 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 
 ### Production Environment
 - **Purpose**: Customer-facing stable environment
-- **Features**: Optimized for performance and security
+- **Features**: Optimized for performance and security, minimal startup logs
 - **Rate Limit**: 100 requests/15min
 - **Log Level**: Warn
 - **Start**: `yarn start`
@@ -172,23 +197,6 @@ yarn test:coverage
 yarn test:watch
 ```
 
-### Test Coverage
-- **70.27%** Statement coverage
-- **83.33%** Branch coverage
-- **75%** Function coverage
-- **70.27%** Line coverage
-
-### Latest Test Results
-- ✅ **4 test suites passed**
-- ✅ **27 tests passed**
-- ✅ **0 test failures**
-- ✅ **All environments tested** (development, staging, production, test)
-
-### Test Structure
-- `__tests__/ping.test.ts` - Ping endpoint tests
-- `__tests__/server.test.ts` - Server configuration tests
-- `__tests__/environments.test.ts` - Environment-specific tests
-- `__tests__/rate-limiting.test.ts` - Rate limiting tests
 
 ## 📋 TODO
 
@@ -197,14 +205,5 @@ yarn test:watch
 - [ ] Add database integration
 - [x] Add comprehensive testing suite
 - [x] Convert to TypeScript
-- [ ] Add API documentation (Swagger/OpenAPI)
+- [x] Add API documentation (Swagger/OpenAPI) ✅
 
-## 📊 Project Status
-
-**Last Updated:** September 14, 2025  
-**Current Branch:** `develop`  
-**Test Status:** ✅ All tests passing (27/27)  
-**TypeScript:** ✅ Fully converted and type-safe  
-**Environments:** ✅ All 4 environments configured and tested  
-**Coverage:** ✅ 70.27% statement coverage, 83.33% branch coverage  
-**Branching:** ✅ Git Flow strategy implemented (develop → staging → main)

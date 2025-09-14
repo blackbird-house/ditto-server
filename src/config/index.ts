@@ -1,12 +1,23 @@
 import { EnvironmentConfig, Environment } from '../types';
 
+// Helper function to generate CORS origins based on port
+const getCorsOrigins = (port: number): string[] => {
+  const baseOrigins = process.env['CORS_ORIGIN']?.split(',') || [];
+  const dynamicOrigins = [
+    `http://localhost:${port}`,
+    `http://127.0.0.1:${port}`,
+    `http://localhost:${port + 1}`, // For potential frontend on next port
+  ];
+  return [...new Set([...baseOrigins, ...dynamicOrigins])];
+};
+
 const config: Record<Environment, EnvironmentConfig> = {
   development: {
     port: parseInt(process.env['PORT'] || '3000', 10),
     env: 'development',
     logLevel: 'debug',
     cors: {
-      origin: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'],
+      origin: getCorsOrigins(parseInt(process.env['PORT'] || '3000', 10)),
       credentials: true
     },
     rateLimit: {
@@ -29,7 +40,7 @@ const config: Record<Environment, EnvironmentConfig> = {
     env: 'test',
     logLevel: 'error',
     cors: {
-      origin: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'],
+      origin: getCorsOrigins(parseInt(process.env['PORT'] || '3001', 10)),
       credentials: true
     },
     rateLimit: {
