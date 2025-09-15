@@ -4,7 +4,7 @@ import { CreateChatRequest, SendMessageRequest } from './types';
 
 export const createChat = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
@@ -63,7 +63,7 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
 
 export const getUserChats = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
@@ -111,7 +111,7 @@ export const getUserChats = async (req: Request, res: Response): Promise<void> =
 
 export const getChatById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
@@ -189,7 +189,7 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
 
 export const sendMessage = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
@@ -266,7 +266,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
 
 export const getChatMessages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
