@@ -35,7 +35,11 @@ ditto-server/
 │   │   └── index.ts   # Environment-specific settings
 │   ├── middleware/    # Express middleware
 │   │   ├── index.ts   # Middleware exports
-│   │   └── urlNormalization.ts # URL normalization middleware
+│   │   ├── urlNormalization.ts # URL normalization middleware
+│   │   ├── auth.ts    # JWT authentication middleware
+│   │   ├── secretValidation.ts # API secret validation middleware
+│   │   ├── jsonOnly.ts # JSON-only request/response enforcement
+│   │   └── errorHandler.ts # Global error handling middleware
 │   ├── routes/        # API endpoint modules
 │   │   └── ping.ts    # Health check endpoint
 │   ├── modules/       # Feature modules
@@ -51,6 +55,9 @@ ditto-server/
 │   │       └── services/     # Auth services
 │   │           ├── authService.ts    # Core auth logic
 │   │           └── mockOtpService.ts # Mock OTP service
+│   ├── database/      # Database layer
+│   │   ├── index.ts   # Database service abstraction
+│   │   └── sqlite.ts  # SQLite database implementation
 │   ├── types/         # TypeScript type definitions
 │   │   └── index.ts   # Shared types and interfaces
 │   ├── app.ts         # Express app configuration
@@ -62,7 +69,10 @@ ditto-server/
 │   ├── environments.test.ts # Environment tests
 │   ├── rate-limiting.test.ts # Rate limiting tests
 │   ├── users.test.ts  # User module tests
-│   └── auth.test.ts   # Authentication module tests
+│   ├── auth.test.ts   # Authentication module tests
+│   ├── secretValidation.test.ts # API secret validation tests
+│   ├── jsonOnly.test.ts # JSON-only enforcement tests
+│   └── errorHandler.test.ts # Global error handling tests
 ├── package.json       # Project dependencies and scripts
 ├── tsconfig.json      # TypeScript configuration
 ├── jest.config.js     # Jest testing configuration
@@ -182,6 +192,10 @@ To use the API client:
 - **JWT Authentication** - Token-based authentication (base64 encoded)
 - **OTP Service** - Phone-based one-time password authentication
 - **Mock Services** - Development-friendly mock implementations
+- **API Secret Validation** - Environment-specific secret key authentication
+- **JSON-Only Enforcement** - Middleware to enforce JSON requests and responses
+- **Global Error Handling** - Comprehensive error handling with consistent JSON responses
+- **SQLite Database** - File-based database for development and testing
 
 ## 🌍 Environment Configuration
 
@@ -206,26 +220,84 @@ To use the API client:
 - **Log Level**: Warn
 - **Start**: `yarn start`
 
+## 📋 API Requirements
+
+### **JSON-Only Format**
+This API **only accepts and returns JSON format**:
+
+- **Requests**: All requests with a body must have `Content-Type: application/json` header
+- **Responses**: All responses are returned in JSON format with `Content-Type: application/json`
+- **Error Handling**: Invalid content types return a 400 Bad Request error
+
+#### **Example Usage**
+```bash
+# ❌ This will return 400 Bad Request
+curl -X POST http://localhost:3000/users \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -d '{"firstName":"John","lastName":"Doe"}'
+
+# ✅ This will work
+curl -X POST http://localhost:3000/users \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"John","lastName":"Doe","email":"john@example.com","phone":"+1234567890"}'
+```
+
+#### **Error Response for Invalid Content-Type**
+```json
+{
+  "error": "Bad Request",
+  "message": "Content-Type must be application/json",
+  "code": "INVALID_CONTENT_TYPE"
+}
+```
+
 ## 🔐 Authentication
 
-The API uses phone-based OTP (One-Time Password) authentication:
+The API uses a two-layer authentication system:
 
-### **Authentication Flow**
+### **1. API Secret Authentication (Required for All Requests)**
+All API requests must include a valid secret header:
+
+- **Header**: `X-API-Secret`
+- **Purpose**: Prevents unauthorized access to the API
+- **Environment-Specific**: Each environment has its own secret key
+
+#### **Environment Secret Keys**
+- **Development**: `dev-secret-key-12345`
+- **Test**: `test-secret-key-67890`
+- **Staging**: `staging-secret-key-abcdef`
+- **Production**: `prod-secret-key-xyz789`
+
+#### **Example Usage**
+```bash
+# ❌ This will return 401 Unauthorized
+curl -X GET http://localhost:3000/ping
+
+# ✅ This will work
+curl -X GET http://localhost:3000/ping -H "X-API-Secret: dev-secret-key-12345"
+```
+
+### **2. User Authentication (Phone-based OTP)**
+For user-specific operations, the API uses phone-based OTP authentication:
+
+#### **Authentication Flow**
 1. **Register**: `POST /users` (create user account)
 2. **Request OTP**: `POST /auth/send-otp` (send OTP to phone)
 3. **Verify OTP**: `POST /auth/verify-otp` (get authentication token)
 4. **Use Token**: Include `Authorization: Bearer <token>` header for protected endpoints
 
-### **Protected Endpoints**
+#### **Protected Endpoints**
 - `GET /users/me` - Get authenticated user profile
 - `PUT /users/me` - Update authenticated user profile
+- `GET /users/:id` - Get user by ID (returns only public info)
 
-### **Token Details**
+#### **Token Details**
 - **Format**: JWT (base64 encoded)
 - **Expiration**: 5 minutes
 - **Header**: `Authorization: Bearer <token>`
 
-### **Development OTP**
+#### **Development OTP**
 In development, the OTP is the last 6 digits of the phone number (e.g., phone `+1234567890` → OTP `567890`)
 
 ## ⚠️ Error Handling
@@ -242,19 +314,44 @@ The API returns consistent JSON error responses for all error scenarios:
 
 ### **Common Error Codes**
 - **400** - Bad Request (missing/invalid data)
+  - Invalid content type: `{"error":"Bad Request","message":"Content-Type must be application/json","code":"INVALID_CONTENT_TYPE"}`
+  - Missing required fields: `{"error":"Bad Request","message":"Missing required field: email"}`
 - **401** - Unauthorized (missing/invalid authentication)
+  - Missing API secret: `{"error":"Unauthorized","message":"Missing required header: X-API-Secret","code":"MISSING_SECRET_HEADER"}`
+  - Invalid API secret: `{"error":"Unauthorized","message":"Invalid API secret","code":"INVALID_SECRET"}`
+  - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Invalid or missing authentication token"}`
 - **404** - Not Found (resource doesn't exist)
 - **409** - Conflict (duplicate data)
 - **429** - Too Many Requests (rate limit exceeded)
 - **500** - Internal Server Error
+  - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","code":"INTERNAL_SERVER_ERROR"}`
+  - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","code":"INTERNAL_SERVER_ERROR","details":"Specific error message","stack":"Full error stack trace"}`
 
-### **404 Handler**
+### **Global Error Handler**
+The API includes a comprehensive error handling system:
+
+#### **404 Handler**
 All undefined routes return a proper JSON 404 response instead of HTML error pages:
 ```json
 {
   "error": "Not found",
   "message": "Cannot PUT /users/some-id"
 }
+```
+
+#### **500 Error Handler**
+All unhandled errors and server crashes are caught by a global error handler that:
+- Returns consistent 500 JSON responses
+- Logs detailed error information (development/test only)
+- Includes debugging details in development/test environments
+- Prevents server crashes from exposing sensitive information
+- Maintains JSON response format even during errors
+
+#### **Debug Endpoint**
+For testing error handling, use the debug endpoint (development only):
+```bash
+curl -X GET http://localhost:3000/debug/error \
+  -H "X-API-Secret: dev-secret-key-12345"
 ```
 
 ## 📝 Development
@@ -311,12 +408,14 @@ yarn test:watch
 ## 📋 TODO
 
 - [ ] Add more API endpoints as needed
-- [ ] Add database integration
-- [x] Add comprehensive testing suite
-- [x] Convert to TypeScript
+- [x] Add database integration ✅
+- [x] Add comprehensive testing suite ✅
+- [x] Convert to TypeScript ✅
 - [x] Add API documentation (Swagger/OpenAPI) ✅
 - [x] Implement phone-based OTP authentication ✅
 - [x] Add user management with authentication ✅
 - [x] Add proper error handling (JSON responses) ✅
 - [x] Add authentication middleware ✅
+- [x] Add API secret validation ✅
+- [x] Add JSON-only request/response enforcement ✅
 

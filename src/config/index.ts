@@ -32,6 +32,10 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableDebugRoutes: true,
       enableMockData: true,
       enableExperimentalFeatures: true
+    },
+    secret: {
+      key: process.env['API_SECRET'] || 'dev-secret-key-12345',
+      headerName: 'X-API-Secret'
     }
   },
 
@@ -55,6 +59,10 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableDebugRoutes: true,
       enableMockData: true,
       enableExperimentalFeatures: true
+    },
+    secret: {
+      key: process.env['API_SECRET'] || 'test-secret-key-67890',
+      headerName: 'X-API-Secret'
     }
   },
   
@@ -78,6 +86,10 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableDebugRoutes: false,
       enableMockData: false,
       enableExperimentalFeatures: false
+    },
+    secret: {
+      key: process.env['API_SECRET'] || 'staging-secret-key-abcdef',
+      headerName: 'X-API-Secret'
     }
   },
   
@@ -101,6 +113,10 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableDebugRoutes: false,
       enableMockData: false,
       enableExperimentalFeatures: false
+    },
+    secret: {
+      key: process.env['API_SECRET'] || 'prod-secret-key-xyz789',
+      headerName: 'X-API-Secret'
     }
   }
 };

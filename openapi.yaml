@@ -1,7 +1,10 @@
 openapi: 3.0.3
 info:
   title: Ditto Server API
-  description: A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript
+  description: |
+    A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript.
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
   version: 1.0.0
   contact:
     name: Ditto Server
@@ -10,6 +13,8 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local development server
+security:
+  - apiSecret: []
 paths:
   /ping:
     get:
@@ -20,6 +25,38 @@ paths:
         '204':
           description: No Content - Server is healthy and responsive
           content: {}
+        '400':
+          description: Bad Request - Invalid content type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Content-Type must be application/json"
+                  code:
+                    type: string
+                    example: "INVALID_CONTENT_TYPE"
+        '401':
+          description: Unauthorized - Missing or invalid API secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Missing required header: X-API-Secret"
+                  code:
+                    type: string
+                    example: "MISSING_SECRET_HEADER"
         '429':
           description: Too Many Requests - Rate limit exceeded
           content:
@@ -30,6 +67,22 @@ paths:
                   error:
                     type: string
                     example: "Too many requests, please try again later."
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred. Please try again later."
+                  code:
+                    type: string
+                    example: "INTERNAL_SERVER_ERROR"
       tags:
         - Health
   /debug/env:
@@ -63,6 +116,22 @@ paths:
                       enableExperimentalFeatures:
                         type: boolean
                         example: true
+        '401':
+          description: Unauthorized - Missing or invalid API secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Missing required header: X-API-Secret"
+                  code:
+                    type: string
+                    example: "MISSING_SECRET_HEADER"
         '404':
           description: Not Found - Debug endpoint not available in this environment
           content:
@@ -100,6 +169,46 @@ paths:
                   message:
                     type: string
                     example: "No OTP sent yet"
+        '404':
+          description: Not Found - Debug endpoint not available in this environment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Debug endpoint not available in production"
+      tags:
+        - Debug
+  /debug/error:
+    get:
+      summary: Test error handling endpoint
+      description: Triggers an error to test the global error handler (development only)
+      operationId: debugError
+      responses:
+        '500':
+          description: Internal Server Error - Test error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred. Please try again later."
+                  code:
+                    type: string
+                    example: "INTERNAL_SERVER_ERROR"
+                  details:
+                    type: string
+                    example: "Test error for error handling demonstration"
+                  stack:
+                    type: string
+                    example: "Error: Test error for error handling demonstration\n    at ..."
         '404':
           description: Not Found - Debug endpoint not available in this environment
           content:
@@ -627,6 +736,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
 tags:
   - name: Health
     description: Health check and monitoring endpoints
