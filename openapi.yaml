@@ -1,7 +1,10 @@
 openapi: 3.0.3
 info:
   title: Ditto Server API
-  description: A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript
+  description: |
+    A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript.
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
   version: 1.0.0
   contact:
     name: Ditto Server
@@ -10,6 +13,8 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local development server
+security:
+  - apiSecret: []
 paths:
   /ping:
     get:
@@ -20,6 +25,38 @@ paths:
         '204':
           description: No Content - Server is healthy and responsive
           content: {}
+        '400':
+          description: Bad Request - Invalid content type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Content-Type must be application/json"
+                  code:
+                    type: string
+                    example: "INVALID_CONTENT_TYPE"
+        '401':
+          description: Unauthorized - Missing or invalid API secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Missing required header: X-API-Secret"
+                  code:
+                    type: string
+                    example: "MISSING_SECRET_HEADER"
         '429':
           description: Too Many Requests - Rate limit exceeded
           content:
@@ -30,6 +67,22 @@ paths:
                   error:
                     type: string
                     example: "Too many requests, please try again later."
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred. Please try again later."
+                  code:
+                    type: string
+                    example: "INTERNAL_SERVER_ERROR"
       tags:
         - Health
   /debug/env:
@@ -37,6 +90,7 @@ paths:
       summary: Environment debug endpoint
       description: Returns current environment configuration and feature flags (development only)
       operationId: debugEnv
+      security: []
       responses:
         '200':
           description: Environment configuration
@@ -63,6 +117,22 @@ paths:
                       enableExperimentalFeatures:
                         type: boolean
                         example: true
+        '401':
+          description: Unauthorized - Missing or invalid API secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Missing required header: X-API-Secret"
+                  code:
+                    type: string
+                    example: "MISSING_SECRET_HEADER"
         '404':
           description: Not Found - Debug endpoint not available in this environment
           content:
@@ -80,6 +150,7 @@ paths:
       summary: Get last OTP for testing
       description: Returns the last generated OTP for testing purposes (development only)
       operationId: debugLastOtp
+      security: []
       responses:
         '200':
           description: Last OTP information
@@ -100,6 +171,47 @@ paths:
                   message:
                     type: string
                     example: "No OTP sent yet"
+        '404':
+          description: Not Found - Debug endpoint not available in this environment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Debug endpoint not available in production"
+      tags:
+        - Debug
+  /debug/error:
+    get:
+      summary: Test error handling endpoint
+      description: Triggers an error to test the global error handler (development only)
+      operationId: debugError
+      security: []
+      responses:
+        '500':
+          description: Internal Server Error - Test error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred. Please try again later."
+                  code:
+                    type: string
+                    example: "INTERNAL_SERVER_ERROR"
+                  details:
+                    type: string
+                    example: "Test error for error handling demonstration"
+                  stack:
+                    type: string
+                    example: "Error: Test error for error handling demonstration\n    at ..."
         '404':
           description: Not Found - Debug endpoint not available in this environment
           content:
@@ -621,12 +733,632 @@ paths:
                     example: "Failed to verify OTP"
       tags:
         - Authentication
+
+  /chats:
+    post:
+      summary: Create a new chat
+      description: Creates a new 1-to-1 chat between the authenticated user and another user
+      operationId: createChat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - participantId
+              properties:
+                participantId:
+                  type: string
+                  description: ID of the user to start a chat with
+                  example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '201':
+          description: Chat created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Chat created successfully"
+                  chat:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      participant1Id:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      participant2Id:
+                        type: string
+                        example: "987fcdeb-51a2-43d1-b456-426614174000"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-14T16:32:26.000Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-14T16:32:26.000Z"
+        '400':
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Participant ID is required"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '404':
+          description: Not Found - User or participant not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "Participant not found"
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "Failed to create chat"
+      tags:
+        - Chat
+
+    get:
+      summary: Get user's chats
+      description: Retrieves all chats for the authenticated user
+      operationId: getUserChats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Chats retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Chats retrieved successfully"
+                  chats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        participant1Id:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        participant2Id:
+                          type: string
+                          example: "987fcdeb-51a2-43d1-b456-426614174000"
+                        otherParticipant:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "987fcdeb-51a2-43d1-b456-426614174000"
+                            firstName:
+                              type: string
+                              example: "Jane"
+                            lastName:
+                              type: string
+                              example: "Smith"
+                        lastMessage:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "456e7890-e89b-12d3-a456-426614174000"
+                            content:
+                              type: string
+                              example: "Hello, how are you?"
+                            senderId:
+                              type: string
+                              example: "123e4567-e89b-12d3-a456-426614174000"
+                            createdAt:
+                              type: string
+                              format: date-time
+                              example: "2025-09-14T16:32:26.000Z"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2025-09-14T16:32:26.000Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2025-09-14T16:32:26.000Z"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '404':
+          description: Not Found - User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "Failed to retrieve chats"
+      tags:
+        - Chat
+
+  /chats/{chatId}:
+    get:
+      summary: Get chat by ID
+      description: Retrieves a specific chat with all its messages (only if user is a participant)
+      operationId: getChatById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          description: ID of the chat to retrieve
+          schema:
+            type: string
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Chat retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Chat retrieved successfully"
+                  chat:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      participant1Id:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      participant2Id:
+                        type: string
+                        example: "987fcdeb-51a2-43d1-b456-426614174000"
+                      otherParticipant:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "987fcdeb-51a2-43d1-b456-426614174000"
+                          firstName:
+                            type: string
+                            example: "Jane"
+                          lastName:
+                            type: string
+                            example: "Smith"
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "456e7890-e89b-12d3-a456-426614174000"
+                            chatId:
+                              type: string
+                              example: "123e4567-e89b-12d3-a456-426614174000"
+                            senderId:
+                              type: string
+                              example: "123e4567-e89b-12d3-a456-426614174000"
+                            content:
+                              type: string
+                              example: "Hello, how are you?"
+                            createdAt:
+                              type: string
+                              format: date-time
+                              example: "2025-09-14T16:32:26.000Z"
+                            updatedAt:
+                              type: string
+                              format: date-time
+                              example: "2025-09-14T16:32:26.000Z"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-14T16:32:26.000Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-14T16:32:26.000Z"
+        '400':
+          description: Bad Request - Invalid chat ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Chat ID is required"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '403':
+          description: Forbidden - User is not a participant in this chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden"
+                  message:
+                    type: string
+                    example: "Access denied: You can only view your own chats"
+        '404':
+          description: Not Found - Chat or user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "Chat not found"
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "Failed to retrieve chat"
+      tags:
+        - Chat
+
+  /chats/{chatId}/messages:
+    post:
+      summary: Send a message
+      description: Sends a message to a specific chat (only if user is a participant)
+      operationId: sendMessage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          description: ID of the chat to send message to
+          schema:
+            type: string
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: Message content
+                  example: "Hello, how are you?"
+                  maxLength: 1000
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message sent successfully"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "456e7890-e89b-12d3-a456-426614174000"
+                      chatId:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      senderId:
+                        type: string
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      content:
+                        type: string
+                        example: "Hello, how are you?"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-14T16:32:26.000Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-14T16:32:26.000Z"
+        '400':
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Message content is required"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '403':
+          description: Forbidden - User is not a participant in this chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden"
+                  message:
+                    type: string
+                    example: "Access denied: You can only send messages to your own chats"
+        '404':
+          description: Not Found - Chat or user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "Chat not found"
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "Failed to send message"
+      tags:
+        - Chat
+
+    get:
+      summary: Get chat messages
+      description: Retrieves all messages from a specific chat (only if user is a participant)
+      operationId: getChatMessages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          description: ID of the chat to get messages from
+          schema:
+            type: string
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Messages retrieved successfully"
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "456e7890-e89b-12d3-a456-426614174000"
+                        chatId:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        senderId:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        content:
+                          type: string
+                          example: "Hello, how are you?"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2025-09-14T16:32:26.000Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2025-09-14T16:32:26.000Z"
+        '400':
+          description: Bad Request - Invalid chat ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Chat ID is required"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '403':
+          description: Forbidden - User is not a participant in this chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden"
+                  message:
+                    type: string
+                    example: "Access denied: You can only view messages from your own chats"
+        '404':
+          description: Not Found - Chat or user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "Chat not found"
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "Failed to retrieve messages"
+      tags:
+        - Chat
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
 tags:
   - name: Health
     description: Health check and monitoring endpoints
@@ -636,3 +1368,5 @@ tags:
     description: User management endpoints
   - name: Authentication
     description: Phone-based OTP authentication endpoints
+  - name: Chat
+    description: 1-to-1 chat messaging endpoints

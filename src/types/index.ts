@@ -19,6 +19,10 @@ export interface EnvironmentConfig {
     enableMockData: boolean;
     enableExperimentalFeatures: boolean;
   };
+  secret: {
+    key: string;
+    headerName: string;
+  };
 }
 
 export type Environment = 'development' | 'staging' | 'production' | 'test';

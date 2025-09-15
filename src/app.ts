@@ -7,8 +7,9 @@ import path from 'path';
 import pingRoutes from './routes/ping';
 import userRoutes from './modules/users/routes';
 import authRoutes from './modules/auth/routes';
+import chatRoutes from './modules/chat/routes';
 import config from './config';
-import { urlNormalization } from './middleware/urlNormalization';
+import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, errorHandler } from './middleware';
 
 const app: Application = express();
 
@@ -17,6 +18,12 @@ const swaggerDocument = YAML.load(path.join(__dirname, '../openapi.yaml'));
 
 // URL normalization middleware (handles multiple slashes from API clients) - MUST be first
 app.use(urlNormalization);
+
+// Secret validation middleware - MUST be early to protect all routes
+app.use(secretValidationMiddleware);
+
+// JSON-only middleware - enforce JSON requests and responses
+app.use(jsonOnlyMiddleware);
 
 // Middleware
 app.use(express.json());
@@ -44,6 +51,7 @@ if (config.features.enableDebugRoutes) {
 app.use('/ping', pingRoutes);
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/chats', chatRoutes);
 
 // Debug routes (only in development and test)
 if (config.features.enableDebugRoutes) {
@@ -67,14 +75,22 @@ if (config.features.enableDebugRoutes) {
       res.json({ message: 'No OTP sent yet' });
     }
   });
+
+  app.get('/debug/error', (_req, _res) => {
+    // This will trigger the error handler
+    throw new Error('Test error for error handling demonstration');
+  });
 }
 
-// 404 handler for undefined routes - must be last
+// 404 handler for undefined routes
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Not found',
     message: `Cannot ${req.method} ${req.originalUrl}`
   });
 });
+
+// Global error handler - MUST be last
+app.use(errorHandler);
 
 export default app;
