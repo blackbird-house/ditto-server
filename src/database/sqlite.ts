@@ -49,6 +49,34 @@ export class SQLiteDatabase {
         )
       `);
 
+      // Create chats table
+      await run(`
+        CREATE TABLE IF NOT EXISTS chats (
+          id TEXT PRIMARY KEY,
+          participant1Id TEXT NOT NULL,
+          participant2Id TEXT NOT NULL,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (participant1Id) REFERENCES users (id),
+          FOREIGN KEY (participant2Id) REFERENCES users (id),
+          UNIQUE (participant1Id, participant2Id)
+        )
+      `);
+
+      // Create messages table
+      await run(`
+        CREATE TABLE IF NOT EXISTS messages (
+          id TEXT PRIMARY KEY,
+          chatId TEXT NOT NULL,
+          senderId TEXT NOT NULL,
+          content TEXT NOT NULL,
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (chatId) REFERENCES chats (id),
+          FOREIGN KEY (senderId) REFERENCES users (id)
+        )
+      `);
+
       console.log('✅ Database tables initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing database tables:', error);
@@ -165,6 +193,79 @@ export class SQLiteDatabase {
 
   async cleanupExpiredOtpSessions(): Promise<void> {
     await this.run('DELETE FROM otp_sessions WHERE expiresAt <= CURRENT_TIMESTAMP');
+  }
+
+  // Chat operations
+  async createChat(chatData: {
+    id: string;
+    participant1Id: string;
+    participant2Id: string;
+  }): Promise<void> {
+    await this.run(
+      `INSERT INTO chats (id, participant1Id, participant2Id) VALUES (?, ?, ?)`,
+      [chatData.id, chatData.participant1Id, chatData.participant2Id]
+    );
+  }
+
+  async getChatById(id: string): Promise<any> {
+    return this.get('SELECT * FROM chats WHERE id = ?', [id]);
+  }
+
+  async getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any> {
+    return this.get(
+      `SELECT * FROM chats WHERE 
+       (participant1Id = ? AND participant2Id = ?) OR 
+       (participant1Id = ? AND participant2Id = ?)`,
+      [participant1Id, participant2Id, participant2Id, participant1Id]
+    );
+  }
+
+  async getUserChats(userId: string): Promise<any[]> {
+    return this.all(
+      `SELECT c.*, 
+              CASE 
+                WHEN c.participant1Id = ? THEN c.participant2Id 
+                ELSE c.participant1Id 
+              END as otherParticipantId
+       FROM chats c 
+       WHERE c.participant1Id = ? OR c.participant2Id = ?
+       ORDER BY c.updatedAt DESC`,
+      [userId, userId, userId]
+    );
+  }
+
+  async updateChatUpdatedAt(chatId: string): Promise<void> {
+    await this.run(
+      'UPDATE chats SET updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+      [chatId]
+    );
+  }
+
+  // Message operations
+  async createMessage(messageData: {
+    id: string;
+    chatId: string;
+    senderId: string;
+    content: string;
+  }): Promise<void> {
+    await this.run(
+      `INSERT INTO messages (id, chatId, senderId, content) VALUES (?, ?, ?, ?)`,
+      [messageData.id, messageData.chatId, messageData.senderId, messageData.content]
+    );
+  }
+
+  async getChatMessages(chatId: string): Promise<any[]> {
+    return this.all(
+      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt ASC',
+      [chatId]
+    );
+  }
+
+  async getLastMessageForChat(chatId: string): Promise<any> {
+    return this.get(
+      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT 1',
+      [chatId]
+    );
   }
 }
 

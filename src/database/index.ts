@@ -31,6 +31,27 @@ export interface DatabaseService {
   getOtpSession(phone: string): Promise<any>;
   deleteOtpSession(id: string): Promise<void>;
   cleanupExpiredOtpSessions(): Promise<void>;
+
+  // Chat operations
+  createChat(chatData: {
+    id: string;
+    participant1Id: string;
+    participant2Id: string;
+  }): Promise<void>;
+  getChatById(id: string): Promise<any>;
+  getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any>;
+  getUserChats(userId: string): Promise<any[]>;
+  updateChatUpdatedAt(chatId: string): Promise<void>;
+
+  // Message operations
+  createMessage(messageData: {
+    id: string;
+    chatId: string;
+    senderId: string;
+    content: string;
+  }): Promise<void>;
+  getChatMessages(chatId: string): Promise<any[]>;
+  getLastMessageForChat(chatId: string): Promise<any>;
 }
 
 class DatabaseServiceWrapper implements DatabaseService {
@@ -136,6 +157,81 @@ class DatabaseServiceWrapper implements DatabaseService {
   async cleanupExpiredOtpSessions(): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.cleanupExpiredOtpSessions();
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  // Chat operations
+  async createChat(chatData: {
+    id: string;
+    participant1Id: string;
+    participant2Id: string;
+  }): Promise<void> {
+    if (this.sqliteDb) {
+      await this.sqliteDb.createChat(chatData);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getChatById(id: string): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getChatById(id);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getChatByParticipants(participant1Id, participant2Id);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getUserChats(userId: string): Promise<any[]> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getUserChats(userId);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async updateChatUpdatedAt(chatId: string): Promise<void> {
+    if (this.sqliteDb) {
+      await this.sqliteDb.updateChatUpdatedAt(chatId);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  // Message operations
+  async createMessage(messageData: {
+    id: string;
+    chatId: string;
+    senderId: string;
+    content: string;
+  }): Promise<void> {
+    if (this.sqliteDb) {
+      await this.sqliteDb.createMessage(messageData);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getChatMessages(chatId: string): Promise<any[]> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getChatMessages(chatId);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getLastMessageForChat(chatId: string): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getLastMessageForChat(chatId);
     } else {
       throw new Error('Database not configured');
     }

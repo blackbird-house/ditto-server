@@ -48,13 +48,18 @@ ditto-server/
 │   │   │   ├── service.ts    # User business logic (in-memory store)
 │   │   │   ├── controller.ts # User HTTP handlers
 │   │   │   └── routes.ts     # User routes
-│   │   └── auth/      # Authentication module
-│   │       ├── types.ts      # Auth type definitions
-│   │       ├── controller.ts # Auth HTTP handlers
-│   │       ├── routes.ts     # Auth routes
-│   │       └── services/     # Auth services
-│   │           ├── authService.ts    # Core auth logic
-│   │           └── mockOtpService.ts # Mock OTP service
+│   │   ├── auth/      # Authentication module
+│   │   │   ├── types.ts      # Auth type definitions
+│   │   │   ├── controller.ts # Auth HTTP handlers
+│   │   │   ├── routes.ts     # Auth routes
+│   │   │   └── services/     # Auth services
+│   │   │       ├── authService.ts    # Core auth logic
+│   │   │       └── mockOtpService.ts # Mock OTP service
+│   │   └── chat/      # Chat messaging module
+│   │       ├── types.ts      # Chat type definitions
+│   │       ├── service.ts    # Chat business logic
+│   │       ├── controller.ts # Chat HTTP handlers
+│   │       └── routes.ts     # Chat routes
 │   ├── database/      # Database layer
 │   │   ├── index.ts   # Database service abstraction
 │   │   └── sqlite.ts  # SQLite database implementation
@@ -70,6 +75,7 @@ ditto-server/
 │   ├── rate-limiting.test.ts # Rate limiting tests
 │   ├── users.test.ts  # User module tests
 │   ├── auth.test.ts   # Authentication module tests
+│   ├── chat.test.ts   # Chat messaging module tests
 │   ├── secretValidation.test.ts # API secret validation tests
 │   ├── jsonOnly.test.ts # JSON-only enforcement tests
 │   └── errorHandler.test.ts # Global error handling tests
@@ -146,12 +152,58 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 - **POST** `/auth/send-otp` - Send OTP to phone number (returns 204)
 - **POST** `/auth/verify-otp` - Verify OTP and get authentication token
 
+### Chat (1-to-1 Messaging)
+- **POST** `/chats` - Create a new chat with another user (requires authentication)
+- **GET** `/chats` - Get all chats for authenticated user (requires authentication)
+- **GET** `/chats/:chatId` - Get specific chat with all messages (requires authentication)
+- **POST** `/chats/:chatId/messages` - Send a message to a chat (requires authentication)
+- **GET** `/chats/:chatId/messages` - Get all messages from a chat (requires authentication)
+
 ### Debug (Development Only)
 - **GET** `/debug/env` - Returns environment configuration (dev only)
 - **GET** `/debug/last-otp` - Get last generated OTP for testing (dev only)
 
 ### API Documentation (Development Only)
-- **GET** `/docs` - Interactive Swagger UI documentation (dev/test only)
+- **GET** `/docs` - Interactive Swagger UI documentation (returns HTML, dev/test only)
+
+## 💬 Chat System
+
+The API includes a simple 1-to-1 chat system with strong privacy controls:
+
+### **Privacy & Security**
+- **User Isolation**: Each user can only see their own chats
+- **Access Control**: Users can only access chats where they are a participant
+- **Message Privacy**: Users can only view messages from chats they participate in
+- **Authentication Required**: All chat endpoints require valid JWT authentication
+
+### **Chat Features**
+- **Create Chats**: Start a new conversation with another user
+- **List Chats**: View all your conversations with last message preview
+- **View Chat**: Get full chat history with all messages
+- **Send Messages**: Send messages up to 1000 characters
+- **Message History**: Retrieve all messages from a specific chat
+
+### **Usage Example**
+```bash
+# 1. Create a chat with another user
+curl -X POST http://localhost:3000/chats \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"participantId": "other-user-id"}'
+
+# 2. Send a message
+curl -X POST http://localhost:3000/chats/CHAT_ID/messages \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Hello, how are you?"}'
+
+# 3. Get all your chats
+curl -X GET http://localhost:3000/chats \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
 ## 🧪 API Testing
 
@@ -196,6 +248,8 @@ To use the API client:
 - **JSON-Only Enforcement** - Middleware to enforce JSON requests and responses
 - **Global Error Handling** - Comprehensive error handling with consistent JSON responses
 - **SQLite Database** - File-based database for development and testing
+- **1-to-1 Chat System** - Private messaging between users with privacy controls
+- **Message Privacy** - Users can only access their own chats and messages
 
 ## 🌍 Environment Configuration
 
@@ -223,10 +277,11 @@ To use the API client:
 ## 📋 API Requirements
 
 ### **JSON-Only Format**
-This API **only accepts and returns JSON format**:
+This API **only accepts and returns JSON format** (except for `/docs` which returns HTML):
 
 - **Requests**: All requests with a body must have `Content-Type: application/json` header
 - **Responses**: All responses are returned in JSON format with `Content-Type: application/json`
+- **Exception**: `/docs` endpoint returns HTML for Swagger UI
 - **Error Handling**: Invalid content types return a 400 Bad Request error
 
 #### **Example Usage**
@@ -256,12 +311,13 @@ curl -X POST http://localhost:3000/users \
 
 The API uses a two-layer authentication system:
 
-### **1. API Secret Authentication (Required for All Requests)**
-All API requests must include a valid secret header:
+### **1. API Secret Authentication (Required for Most Requests)**
+Most API requests must include a valid secret header:
 
 - **Header**: `X-API-Secret`
 - **Purpose**: Prevents unauthorized access to the API
 - **Environment-Specific**: Each environment has its own secret key
+- **Excluded Endpoints**: `/docs` and `/debug/*` endpoints don't require the secret header
 
 #### **Environment Secret Keys**
 - **Development**: `dev-secret-key-12345`
@@ -276,6 +332,10 @@ curl -X GET http://localhost:3000/ping
 
 # ✅ This will work
 curl -X GET http://localhost:3000/ping -H "X-API-Secret: dev-secret-key-12345"
+
+# ✅ Debug endpoints work without secret header
+curl -X GET http://localhost:3000/debug/env
+curl -X GET http://localhost:3000/docs
 ```
 
 ### **2. User Authentication (Phone-based OTP)**
@@ -350,8 +410,7 @@ All unhandled errors and server crashes are caught by a global error handler tha
 #### **Debug Endpoint**
 For testing error handling, use the debug endpoint (development only):
 ```bash
-curl -X GET http://localhost:3000/debug/error \
-  -H "X-API-Secret: dev-secret-key-12345"
+curl -X GET http://localhost:3000/debug/error
 ```
 
 ## 📝 Development

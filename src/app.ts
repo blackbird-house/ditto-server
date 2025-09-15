@@ -7,6 +7,7 @@ import path from 'path';
 import pingRoutes from './routes/ping';
 import userRoutes from './modules/users/routes';
 import authRoutes from './modules/auth/routes';
+import chatRoutes from './modules/chat/routes';
 import config from './config';
 import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, errorHandler } from './middleware';
 
@@ -50,6 +51,7 @@ if (config.features.enableDebugRoutes) {
 app.use('/ping', pingRoutes);
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/chats', chatRoutes);
 
 // Debug routes (only in development and test)
 if (config.features.enableDebugRoutes) {

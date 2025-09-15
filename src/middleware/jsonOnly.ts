@@ -4,8 +4,14 @@ import { Request, Response, NextFunction } from 'express';
  * Middleware to enforce JSON-only requests and responses
  * Rejects requests that don't have Content-Type: application/json
  * Ensures all responses are in JSON format
+ * Excludes /docs endpoint which serves HTML content
  */
 export const jsonOnlyMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  // Skip JSON enforcement for docs endpoint (serves HTML)
+  if (req.path.startsWith('/docs')) {
+    return next();
+  }
+
   // Check if request has a body and requires JSON content type
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     const contentType = req.headers['content-type'];

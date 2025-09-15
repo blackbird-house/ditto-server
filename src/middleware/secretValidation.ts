@@ -4,8 +4,14 @@ import config from '../config';
 /**
  * Middleware to validate API secret from request headers
  * All requests must include the correct secret header to be accepted
+ * Excludes docs and debug endpoints from secret validation
  */
 export const secretValidationMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  // Skip secret validation for docs and debug endpoints
+  if (req.path.startsWith('/docs') || req.path.startsWith('/debug')) {
+    return next();
+  }
+
   const secretHeader = req.headers[config.secret.headerName.toLowerCase()] as string;
   
   if (!secretHeader) {
