@@ -40,6 +40,8 @@ describe('Environment-Specific Tests', () => {
     beforeAll(() => {
       jest.resetModules();
       process.env['NODE_ENV'] = 'staging';
+      process.env['API_SECRET'] = 'staging-secret-key-12345';
+      process.env['JWT_SECRET'] = 'staging-jwt-secret-key-12345';
       app = require('../src/app').default;
       config = require('../src/config').default;
     });
@@ -63,6 +65,8 @@ describe('Environment-Specific Tests', () => {
     beforeAll(() => {
       jest.resetModules();
       process.env['NODE_ENV'] = 'production';
+      process.env['API_SECRET'] = 'production-secret-key-12345';
+      process.env['JWT_SECRET'] = 'production-jwt-secret-key-12345';
       app = require('../src/app').default;
       config = require('../src/config').default;
     });

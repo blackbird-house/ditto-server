@@ -2,10 +2,13 @@ import { AuthService, VerifyOtpResponse, AuthToken } from '../types';
 import { MockOtpService } from './mockOtpService';
 import { userService } from '../../users/service';
 import { databaseService } from '../../../database';
+import jwt from 'jsonwebtoken';
+import config from '../../../config';
 
 export class AuthServiceImpl implements AuthService {
   private otpService: MockOtpService;
   private otpSessions: Map<string, { otpId: string; attempts: number; maxAttempts: number }> = new Map();
+  private lockoutAttempts: Map<string, { attempts: number; lastAttempt: Date; lockedUntil?: Date }> = new Map();
 
   constructor() {
     this.otpService = new MockOtpService();
@@ -13,6 +16,16 @@ export class AuthServiceImpl implements AuthService {
     // Cleanup expired OTPs every 5 minutes
     setInterval(() => {
       this.otpService.cleanupExpiredOtps();
+    }, 5 * 60 * 1000);
+
+    // Cleanup expired lockout attempts every 5 minutes
+    setInterval(() => {
+      const now = new Date();
+      for (const [key, data] of this.lockoutAttempts.entries()) {
+        if (data.lockedUntil && data.lockedUntil <= now) {
+          this.lockoutAttempts.delete(key);
+        }
+      }
     }, 5 * 60 * 1000);
   }
 
@@ -47,6 +60,15 @@ export class AuthServiceImpl implements AuthService {
   }
 
   async verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse> {
+    // Check for account lockout
+    const lockoutKey = `lockout_${phone}`;
+    const lockoutData = this.lockoutAttempts.get(lockoutKey);
+    
+    if (lockoutData?.lockedUntil && lockoutData.lockedUntil > new Date()) {
+      const remainingTime = Math.ceil((lockoutData.lockedUntil.getTime() - Date.now()) / 1000 / 60);
+      throw new Error(`Account temporarily locked. Try again in ${remainingTime} minutes.`);
+    }
+
     const sessionKey = `otp_${phone}`;
     const session = this.otpSessions.get(sessionKey);
     
@@ -58,6 +80,26 @@ export class AuthServiceImpl implements AuthService {
       const isValid = await this.otpService.verifyOtp(phone, otp, session.otpId);
       
       if (!isValid) {
+        // Increment failed attempts and implement lockout
+        const currentAttempts = (lockoutData?.attempts || 0) + 1;
+        const maxAttempts = 5;
+        const lockoutDuration = 15 * 60 * 1000; // 15 minutes
+        
+        if (currentAttempts >= maxAttempts) {
+          const lockedUntil = new Date(Date.now() + lockoutDuration);
+          this.lockoutAttempts.set(lockoutKey, {
+            attempts: currentAttempts,
+            lastAttempt: new Date(),
+            lockedUntil
+          });
+          throw new Error(`Too many failed attempts. Account locked for 15 minutes.`);
+        } else {
+          this.lockoutAttempts.set(lockoutKey, {
+            attempts: currentAttempts,
+            lastAttempt: new Date()
+          });
+        }
+        
         throw new Error('Invalid or expired OTP');
       }
 
@@ -72,8 +114,9 @@ export class AuthServiceImpl implements AuthService {
       // Generate JWT token
       const token = this.generateToken(user.id, phone);
 
-      // Clean up OTP session
+      // Clean up OTP session and reset lockout attempts
       this.otpSessions.delete(sessionKey);
+      this.lockoutAttempts.delete(lockoutKey);
 
       return {
         token
@@ -84,30 +127,35 @@ export class AuthServiceImpl implements AuthService {
   }
 
   generateToken(userId: string, phone: string): string {
-    // Simple token generation (in production, use proper JWT)
+    // Generate secure JWT token with proper signing
     const payload = {
       userId,
       phone,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (5 * 60) // 5 minutes
+      iat: Math.floor(Date.now() / 1000)
     };
 
-    // For now, return a simple base64 encoded token
-    // In production, use jsonwebtoken library
-    return Buffer.from(JSON.stringify(payload)).toString('base64');
+    // Use proper JWT with HMAC signing and configurable expiration
+    return jwt.sign(payload, config.jwt.secret, {
+      expiresIn: config.jwt.expiresIn,
+      algorithm: 'HS256'
+    } as jwt.SignOptions);
   }
 
   verifyToken(token: string): AuthToken | null {
     try {
-      const payload = JSON.parse(Buffer.from(token, 'base64').toString());
-      
-      // Check expiration
-      if (payload.exp < Math.floor(Date.now() / 1000)) {
-        return null;
-      }
+      // Verify JWT token with proper signature validation
+      const payload = jwt.verify(token, config.jwt.secret, {
+        algorithms: ['HS256']
+      } as jwt.VerifyOptions) as any;
 
-      return payload as AuthToken;
+      return {
+        userId: payload.userId,
+        phone: payload.phone,
+        iat: payload.iat,
+        exp: payload.exp
+      };
     } catch (error) {
+      // JWT verification failed (expired, invalid signature, etc.)
       return null;
     }
   }

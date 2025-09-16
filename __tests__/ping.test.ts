@@ -21,7 +21,8 @@ describe('Ping Endpoint', () => {
         .set('X-API-Secret', validSecret)
         .expect(204);
       
-      expect(response.headers['x-powered-by']).toBe('Express');
+      // x-powered-by header is removed by Helmet.js for security
+      expect(response.headers['x-powered-by']).toBeUndefined();
       expect(response.headers['vary']).toBe('Origin');
       expect(response.headers['access-control-allow-credentials']).toBe('true');
     });

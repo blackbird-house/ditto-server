@@ -1,5 +1,5 @@
 import { OtpService } from '../types';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomInt } from 'crypto';
 
 /**
  * Mock OTP Service for Development
@@ -13,8 +13,11 @@ export class MockOtpService implements OtpService {
   private otpStore: Map<string, { otp: string; expiresAt: Date }> = new Map();
 
   async sendOtp(phone: string): Promise<{ otpId: string; otp: string }> {
-    // Use last 6 digits of phone number as OTP
-    const otp = phone.slice(-6);
+    // Generate cryptographically secure 6-digit OTP
+    // In test and development environments, use a deterministic approach for easier testing
+    const otp = (process.env['NODE_ENV'] === 'test' || process.env['NODE_ENV'] === 'development')
+      ? phone.slice(-6) // Use last 6 digits for testing/development
+      : randomInt(100000, 999999).toString(); // Use secure random for staging/production
     const otpId = randomUUID();
     
     // Store OTP with 5-minute expiration
