@@ -302,8 +302,7 @@ curl -X POST http://localhost:3000/users \
 ```json
 {
   "error": "Bad Request",
-  "message": "Content-Type must be application/json",
-  "code": "INVALID_CONTENT_TYPE"
+  "message": "Invalid request format"
 }
 ```
 
@@ -374,18 +373,18 @@ The API returns consistent JSON error responses for all error scenarios:
 
 ### **Common Error Codes**
 - **400** - Bad Request (missing/invalid data)
-  - Invalid content type: `{"error":"Bad Request","message":"Content-Type must be application/json","code":"INVALID_CONTENT_TYPE"}`
-  - Missing required fields: `{"error":"Bad Request","message":"Missing required field: email"}`
+  - Invalid content type: `{"error":"Bad Request","message":"Invalid request format"}`
+  - Missing required fields: `{"error":"Bad Request","message":"Invalid request data"}`
 - **401** - Unauthorized (missing/invalid authentication)
-  - Missing API secret: `{"error":"Unauthorized","message":"Missing required header: X-API-Secret","code":"MISSING_SECRET_HEADER"}`
-  - Invalid API secret: `{"error":"Unauthorized","message":"Invalid API secret","code":"INVALID_SECRET"}`
-  - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Invalid or missing authentication token"}`
+  - Missing API secret: `{"error":"Unauthorized","message":"Authentication required"}`
+  - Invalid API secret: `{"error":"Unauthorized","message":"Authentication required"}`
+  - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Authentication required"}`
 - **404** - Not Found (resource doesn't exist)
 - **409** - Conflict (duplicate data)
 - **429** - Too Many Requests (rate limit exceeded)
 - **500** - Internal Server Error
-  - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","code":"INTERNAL_SERVER_ERROR"}`
-  - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","code":"INTERNAL_SERVER_ERROR","details":"Specific error message","stack":"Full error stack trace"}`
+  - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later."}`
+  - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","details":"Specific error message","stack":"Full error stack trace"}`
 
 ### **Global Error Handler**
 The API includes a comprehensive error handling system:
