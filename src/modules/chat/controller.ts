@@ -144,8 +144,7 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
         chatId: message.chatId,
         senderId: message.senderId,
         content: message.content,
-        createdAt: message.createdAt.toISOString(),
-        updatedAt: message.updatedAt.toISOString()
+        createdAt: message.createdAt.toISOString()
       })),
       createdAt: chat.createdAt.toISOString(),
       updatedAt: chat.updatedAt.toISOString()
@@ -215,8 +214,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
       chatId: message.chatId,
       senderId: message.senderId,
       content: message.content,
-      createdAt: message.createdAt.toISOString(),
-      updatedAt: message.updatedAt.toISOString()
+      createdAt: message.createdAt.toISOString()
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -280,8 +278,7 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
       chatId: message.chatId,
       senderId: message.senderId,
       content: message.content,
-      createdAt: message.createdAt.toISOString(),
-      updatedAt: message.updatedAt.toISOString()
+      createdAt: message.createdAt.toISOString()
     }));
 
     res.status(200).json(response);

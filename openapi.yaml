@@ -987,10 +987,6 @@ paths:
                           type: string
                           format: date-time
                           example: "2025-09-14T16:32:26.000Z"
-                        updatedAt:
-                          type: string
-                          format: date-time
-                          example: "2025-09-14T16:32:26.000Z"
                   createdAt:
                     type: string
                     format: date-time
@@ -1120,10 +1116,6 @@ paths:
                     type: string
                     format: date-time
                     example: "2025-09-14T16:32:26.000Z"
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: "2025-09-14T16:32:26.000Z"
         '400':
           description: Bad Request - Invalid data
           content:
@@ -1229,10 +1221,6 @@ paths:
                       type: string
                       example: "Hello, how are you?"
                     createdAt:
-                      type: string
-                      format: date-time
-                      example: "2025-09-14T16:32:26.000Z"
-                    updatedAt:
                       type: string
                       format: date-time
                       example: "2025-09-14T16:32:26.000Z"
