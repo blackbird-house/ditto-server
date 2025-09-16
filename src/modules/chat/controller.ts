@@ -37,12 +37,11 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
       id: chat.id,
       user1Id: chat.user1Id,
       user2Id: chat.user2Id,
-      createdAt: chat.createdAt.toISOString(),
-      updatedAt: chat.updatedAt.toISOString()
+      createdAt: chat.createdAt.toISOString()
     });
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === 'User not found' || error.message === 'Participant not found') {
+      if (error.message === 'User not found') {
         res.status(404).json({
           error: 'Not Found',
           message: 'Resource not found'
@@ -82,8 +81,7 @@ export const getUserChats = async (req: Request, res: Response): Promise<void> =
         senderId: chat.lastMessage.senderId,
         createdAt: chat.lastMessage.createdAt.toISOString()
       } : null,
-      createdAt: chat.createdAt.toISOString(),
-      updatedAt: chat.updatedAt.toISOString()
+      createdAt: chat.createdAt.toISOString()
     }));
 
     res.status(200).json(response);
@@ -146,8 +144,7 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
         content: message.content,
         createdAt: message.createdAt.toISOString()
       })),
-      createdAt: chat.createdAt.toISOString(),
-      updatedAt: chat.updatedAt.toISOString()
+      createdAt: chat.createdAt.toISOString()
     };
 
     res.status(200).json(response);

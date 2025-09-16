@@ -23,6 +23,10 @@ export interface EnvironmentConfig {
     key: string;
     headerName: string;
   };
+  jwt: {
+    secret: string;
+    expiresIn: string;
+  };
 }
 
 export type Environment = 'development' | 'staging' | 'production' | 'test';

@@ -1,4 +1,14 @@
 import { EnvironmentConfig, Environment } from '../types';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from environment-specific .env file
+const env = (process.env['NODE_ENV'] || 'development') as Environment;
+const envFile = `.env.${env}`;
+
+// Try to load environment-specific file first, then fallback to .env
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // Helper function to generate CORS origins based on port
 const getCorsOrigins = (port: number): string[] => {
@@ -34,8 +44,16 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: true
     },
     secret: {
-      key: process.env['API_SECRET'] || 'dev-secret-key-12345',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '24h'
     }
   },
 
@@ -61,8 +79,16 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: true
     },
     secret: {
-      key: process.env['API_SECRET'] || 'test-secret-key-67890',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '1h'
     }
   },
   
@@ -88,8 +114,16 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: false
     },
     secret: {
-      key: process.env['API_SECRET'] || 'staging-secret-key-abcdef',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '12h'
     }
   },
   
@@ -115,12 +149,18 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: false
     },
     secret: {
-      key: process.env['API_SECRET'] || 'prod-secret-key-xyz789',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '24h'
     }
   }
 };
-
-const env = (process.env['NODE_ENV'] || 'development') as Environment;
 
 export default config[env];

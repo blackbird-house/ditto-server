@@ -4,10 +4,78 @@ A ready-to-use easy-to-clone REST API server built with Node.js and Express.
 
 ## 🚀 Quick Start
 
+### 1. Install Dependencies
 ```bash
-# Install dependencies
 yarn install
+```
 
+### 2. Environment Setup (REQUIRED)
+**⚠️ You must create environment files** in the project root. The application will automatically load the correct file based on `NODE_ENV`:
+
+#### For Development:
+Create `.env.development`:
+```bash
+# Development Environment Configuration
+NODE_ENV=development
+PORT=3000
+
+# API Secrets
+API_SECRET=dev-secret-key-12345
+
+# JWT Configuration (for future secure implementation)
+JWT_SECRET=dev-jwt-secret-key-12345
+
+# Database Configuration
+DATABASE_URL=./data/ditto-dev.db
+
+# CORS Configuration (comma-separated origins)
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001
+
+# OTP Service Configuration (for future real OTP service)
+# OTP_SERVICE_API_KEY=your-otp-service-api-key
+# OTP_SERVICE_URL=https://api.otp-service.com
+
+# Logging
+LOG_LEVEL=debug
+```
+
+#### For Testing:
+Create `.env.test`:
+```bash
+# Test Environment Configuration
+NODE_ENV=test
+PORT=3001
+
+# API Secrets
+API_SECRET=test-secret-key-67890
+
+# JWT Configuration (for future secure implementation)
+JWT_SECRET=test-jwt-secret-key-67890
+
+# Database Configuration
+DATABASE_URL=:memory:
+
+# CORS Configuration (comma-separated origins)
+CORS_ORIGIN=http://localhost:3001,http://localhost:3002
+
+# OTP Service Configuration (for future real OTP service)
+# OTP_SERVICE_API_KEY=your-otp-service-api-key
+# OTP_SERVICE_URL=https://api.otp-service.com
+
+# Logging
+LOG_LEVEL=error
+```
+
+> **🔒 Security Note**: The application now requires environment variables for all secrets. No fallback values are provided, ensuring that secrets must be explicitly configured for each environment.
+
+> **📁 Environment Loading**: The application automatically loads `.env.{NODE_ENV}` files. For example:
+> - `NODE_ENV=development` → loads `.env.development`
+> - `NODE_ENV=test` → loads `.env.test`
+> - `NODE_ENV=production` → loads `.env.production`
+> - Falls back to `.env` if environment-specific file doesn't exist
+
+### 3. Run the Server
+```bash
 # Development environment (unreliable, for BE engineers to play with)
 yarn dev
 

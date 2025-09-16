@@ -760,10 +760,6 @@ paths:
                     type: string
                     format: date-time
                     example: "2025-09-14T16:32:26.000Z"
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: "2025-09-14T16:32:26.000Z"
         '400':
           description: Bad Request - Invalid data
           content:
@@ -838,13 +834,13 @@ paths:
                     id:
                       type: string
                       example: "123e4567-e89b-12d3-a456-426614174000"
-                    participant1Id:
+                    user1Id:
                       type: string
                       example: "123e4567-e89b-12d3-a456-426614174000"
-                    participant2Id:
+                    user2Id:
                       type: string
                       example: "987fcdeb-51a2-43d1-b456-426614174000"
-                    otherParticipant:
+                    otherUser:
                       type: object
                       properties:
                         id:
@@ -873,10 +869,6 @@ paths:
                           format: date-time
                           example: "2025-09-14T16:32:26.000Z"
                     createdAt:
-                      type: string
-                      format: date-time
-                      example: "2025-09-14T16:32:26.000Z"
-                    updatedAt:
                       type: string
                       format: date-time
                       example: "2025-09-14T16:32:26.000Z"
@@ -954,7 +946,7 @@ paths:
                   user2Id:
                     type: string
                     example: "987fcdeb-51a2-43d1-b456-426614174000"
-                  otherParticipant:
+                  otherUser:
                     type: object
                     properties:
                       id:
@@ -988,10 +980,6 @@ paths:
                           format: date-time
                           example: "2025-09-14T16:32:26.000Z"
                   createdAt:
-                    type: string
-                    format: date-time
-                    example: "2025-09-14T16:32:26.000Z"
-                  updatedAt:
                     type: string
                     format: date-time
                     example: "2025-09-14T16:32:26.000Z"
