@@ -274,10 +274,10 @@ export class SQLiteDatabase {
     );
   }
 
-  async getChatMessages(chatId: string): Promise<any[]> {
+  async getChatMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
     return this.all(
-      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt ASC',
-      [chatId]
+      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?',
+      [chatId, limit, offset]
     );
   }
 

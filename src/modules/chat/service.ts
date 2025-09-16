@@ -183,7 +183,7 @@ class DatabaseChatService implements ChatService {
     return message;
   }
 
-  async getChatMessages(userId: string, chatId: string): Promise<Message[]> {
+  async getChatMessages(userId: string, chatId: string, limit: number = 20, offset: number = 0): Promise<Message[]> {
     // Validate user exists
     const user = await userService.getUserById(userId);
     if (!user) {
@@ -201,7 +201,15 @@ class DatabaseChatService implements ChatService {
       throw new Error('Access denied: You can only view messages from your own chats');
     }
 
-    const messages = await databaseService.getChatMessages(chatId);
+    // Validate pagination parameters
+    if (limit < 1 || limit > 20) {
+      throw new Error('Invalid limit: must be between 1 and 20');
+    }
+    if (offset < 0) {
+      throw new Error('Invalid offset: must be 0 or greater');
+    }
+
+    const messages = await databaseService.getChatMessages(chatId, limit, offset);
     return messages.map(msg => ({
       id: msg.id,
       chatId: msg.chatId,

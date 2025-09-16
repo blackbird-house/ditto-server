@@ -268,11 +268,14 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    const messages = await chatService.getChatMessages(userId, chatId);
+    // Parse pagination parameters
+    const limit = parseInt(req.query['limit'] as string) || 20;
+    const offset = parseInt(req.query['offset'] as string) || 0;
+
+    const messages = await chatService.getChatMessages(userId, chatId, limit, offset);
 
     const response = messages.map(message => ({
       id: message.id,
-      chatId: message.chatId,
       senderId: message.senderId,
       content: message.content,
       createdAt: message.createdAt.toISOString()
@@ -293,6 +296,14 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
         res.status(403).json({
           error: 'Forbidden',
           message: 'Access denied'
+        });
+        return;
+      }
+
+      if (error.message.includes('Invalid limit') || error.message.includes('Invalid offset')) {
+        res.status(400).json({
+          error: 'Bad Request',
+          message: 'Invalid request data'
         });
         return;
       }

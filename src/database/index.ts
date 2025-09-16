@@ -50,7 +50,7 @@ export interface DatabaseService {
     senderId: string;
     content: string;
   }): Promise<void>;
-  getChatMessages(chatId: string): Promise<any[]>;
+  getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]>;
   getLastMessageForChat(chatId: string): Promise<any>;
 }
 
@@ -221,9 +221,9 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getChatMessages(chatId: string): Promise<any[]> {
+  async getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]> {
     if (this.sqliteDb) {
-      return this.sqliteDb.getChatMessages(chatId);
+      return this.sqliteDb.getChatMessages(chatId, limit, offset);
     } else {
       throw new Error('Database not configured');
     }

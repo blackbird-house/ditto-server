@@ -1174,7 +1174,7 @@ paths:
 
     get:
       summary: Get chat messages
-      description: Retrieves all messages from a specific chat (only if user is a user in the chat)
+      description: Retrieves messages from a specific chat with pagination (only if user is a user in the chat). Messages are ordered by creation date, most recent first.
       operationId: getChatMessages
       security:
         - bearerAuth: []
@@ -1186,6 +1186,25 @@ paths:
           schema:
             type: string
             example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of messages to return (1-20, default 20)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 20
+            example: 20
+        - name: offset
+          in: query
+          required: false
+          description: Number of messages to skip (default 0)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+            example: 0
       responses:
         '200':
           description: Messages retrieved successfully
@@ -1199,9 +1218,6 @@ paths:
                     id:
                       type: string
                       example: "456e7890-e89b-12d3-a456-426614174000"
-                    chatId:
-                      type: string
-                      example: "123e4567-e89b-12d3-a456-426614174000"
                     senderId:
                       type: string
                       example: "123e4567-e89b-12d3-a456-426614174000"
