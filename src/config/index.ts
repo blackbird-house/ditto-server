@@ -52,7 +52,7 @@ const config: Record<Environment, EnvironmentConfig> = {
       max: 1000 // limit each IP to 1000 requests per windowMs
     },
     database: {
-      url: process.env['DATABASE_URL'] || './data/ditto-test.db',
+      url: process.env['DATABASE_URL'] || ':memory:',
       type: 'sqlite'
     },
     features: {

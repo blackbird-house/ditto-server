@@ -83,10 +83,10 @@ if (config.features.enableDebugRoutes) {
 }
 
 // 404 handler for undefined routes
-app.use('*', (req, res) => {
+app.use('*', (_req, res) => {
   res.status(404).json({
-    error: 'Not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`
+    error: 'Not Found',
+    message: 'Resource not found'
   });
 });
 

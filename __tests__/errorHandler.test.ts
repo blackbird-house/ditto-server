@@ -15,7 +15,6 @@ describe('Error Handler Middleware', () => {
       expect(response.body).toEqual({
         error: 'Internal Server Error',
         message: 'An unexpected error occurred. Please try again later.',
-        code: 'INTERNAL_SERVER_ERROR',
         details: 'Test error for error handling demonstration',
         stack: expect.any(String)
       });
@@ -43,7 +42,6 @@ describe('Error Handler Middleware', () => {
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('error');
       expect(response.body).toHaveProperty('message');
-      expect(response.body).toHaveProperty('code');
     });
 
     it('should handle async errors properly', async () => {
@@ -66,7 +64,6 @@ describe('Error Handler Middleware', () => {
       expect(typeof response.body).toBe('object');
       expect(response.body).toHaveProperty('error');
       expect(response.body).toHaveProperty('message');
-      expect(response.body).toHaveProperty('code');
     });
 
     it('should not send response if headers already sent', async () => {
@@ -90,8 +87,7 @@ describe('Error Handler Middleware', () => {
       expect(response.status).toBe(500);
       expect(response.body).toMatchObject({
         error: expect.any(String),
-        message: expect.any(String),
-        code: expect.any(String)
+        message: expect.any(String)
       });
     });
 
@@ -101,7 +97,6 @@ describe('Error Handler Middleware', () => {
         .set('X-API-Secret', validSecret);
 
       expect(response.status).toBe(500);
-      expect(response.body.code).toBe('INTERNAL_SERVER_ERROR');
     });
 
     it('should provide user-friendly error message', async () => {
@@ -131,7 +126,7 @@ describe('Error Handler Middleware', () => {
         .set('X-API-Secret', validSecret);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Not found');
+      expect(response.body.error).toBe('Not Found');
     });
 
     it('should not interfere with validation errors', async () => {

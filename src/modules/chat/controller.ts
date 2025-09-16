@@ -18,7 +18,7 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
     if (!participantId) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Participant ID is required'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -26,7 +26,7 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
     if (participantId === userId) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Cannot create chat with yourself'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -34,21 +34,18 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
     const chat = await chatService.createChat(userId, participantId);
 
     res.status(201).json({
-      message: 'Chat created successfully',
-      chat: {
-        id: chat.id,
-        participant1Id: chat.participant1Id,
-        participant2Id: chat.participant2Id,
-        createdAt: chat.createdAt.toISOString(),
-        updatedAt: chat.updatedAt.toISOString()
-      }
+      id: chat.id,
+      participant1Id: chat.participant1Id,
+      participant2Id: chat.participant2Id,
+      createdAt: chat.createdAt.toISOString(),
+      updatedAt: chat.updatedAt.toISOString()
     });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'User not found' || error.message === 'Participant not found') {
         res.status(404).json({
           error: 'Not Found',
-          message: error.message
+          message: 'Resource not found'
         });
         return;
       }
@@ -89,15 +86,12 @@ export const getUserChats = async (req: Request, res: Response): Promise<void> =
       updatedAt: chat.updatedAt.toISOString()
     }));
 
-    res.status(200).json({
-      message: 'Chats retrieved successfully',
-      chats: response
-    });
+    res.status(200).json(response);
   } catch (error) {
     if (error instanceof Error && error.message === 'User not found') {
       res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: 'Resource not found'
       });
       return;
     }
@@ -125,7 +119,7 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
     if (!chatId) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Chat ID is required'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -135,7 +129,7 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
     if (!chat) {
       res.status(404).json({
         error: 'Not Found',
-        message: 'Chat not found'
+        message: 'Resource not found'
       });
       return;
     }
@@ -157,16 +151,13 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
       updatedAt: chat.updatedAt.toISOString()
     };
 
-    res.status(200).json({
-      message: 'Chat retrieved successfully',
-      chat: response
-    });
+    res.status(200).json(response);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'User not found') {
         res.status(404).json({
           error: 'Not Found',
-          message: error.message
+          message: 'Resource not found'
         });
         return;
       }
@@ -174,7 +165,7 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
       if (error.message === 'Access denied: You can only view your own chats') {
         res.status(403).json({
           error: 'Forbidden',
-          message: error.message
+          message: 'Access denied'
         });
         return;
       }
@@ -204,7 +195,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
     if (!chatId) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Chat ID is required'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -212,7 +203,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
     if (!content) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Message content is required'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -220,22 +211,19 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
     const message = await chatService.sendMessage(userId, chatId, content);
 
     res.status(201).json({
-      message: 'Message sent successfully',
-      data: {
-        id: message.id,
-        chatId: message.chatId,
-        senderId: message.senderId,
-        content: message.content,
-        createdAt: message.createdAt.toISOString(),
-        updatedAt: message.updatedAt.toISOString()
-      }
+      id: message.id,
+      chatId: message.chatId,
+      senderId: message.senderId,
+      content: message.content,
+      createdAt: message.createdAt.toISOString(),
+      updatedAt: message.updatedAt.toISOString()
     });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'User not found' || error.message === 'Chat not found') {
         res.status(404).json({
           error: 'Not Found',
-          message: error.message
+          message: 'Resource not found'
         });
         return;
       }
@@ -243,7 +231,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
       if (error.message === 'Access denied: You can only send messages to your own chats') {
         res.status(403).json({
           error: 'Forbidden',
-          message: error.message
+          message: 'Access denied'
         });
         return;
       }
@@ -251,7 +239,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
       if (error.message.includes('Message content')) {
         res.status(400).json({
           error: 'Bad Request',
-          message: error.message
+          message: 'Invalid request data'
         });
         return;
       }
@@ -280,7 +268,7 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
     if (!chatId) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Chat ID is required'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -296,16 +284,13 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
       updatedAt: message.updatedAt.toISOString()
     }));
 
-    res.status(200).json({
-      message: 'Messages retrieved successfully',
-      messages: response
-    });
+    res.status(200).json(response);
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'User not found' || error.message === 'Chat not found') {
         res.status(404).json({
           error: 'Not Found',
-          message: error.message
+          message: 'Resource not found'
         });
         return;
       }
@@ -313,7 +298,7 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
       if (error.message === 'Access denied: You can only view messages from your own chats') {
         res.status(403).json({
           error: 'Forbidden',
-          message: error.message
+          message: 'Access denied'
         });
         return;
       }

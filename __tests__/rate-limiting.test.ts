@@ -6,6 +6,7 @@ describe('Rate Limiting', () => {
     it('should include rate limit headers in response', async () => {
       const response = await request(app)
         .get('/ping')
+        .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
       
       expect(response.headers['x-ratelimit-limit']).toBeDefined();
@@ -24,10 +25,12 @@ describe('Rate Limiting', () => {
     it('should decrement remaining count on each request', async () => {
       const response1 = await request(app)
         .get('/ping')
+        .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
       
       const response2 = await request(app)
         .get('/ping')
+        .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
       
       const remaining1 = parseInt(response1.headers['x-ratelimit-remaining'] as string, 10);
@@ -41,7 +44,7 @@ describe('Rate Limiting', () => {
     it('should allow requests within rate limit', async () => {
       // Make a few requests to test rate limiting
       const promises = Array(5).fill(null).map(() => 
-        request(app).get('/ping')
+        request(app).get('/ping').set('X-API-Secret', 'test-secret-key-67890')
       );
       
       const responses = await Promise.all(promises);
@@ -54,10 +57,12 @@ describe('Rate Limiting', () => {
     it('should have consistent rate limit across multiple requests', async () => {
       const response1 = await request(app)
         .get('/ping')
+        .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
       
       const response2 = await request(app)
         .get('/ping')
+        .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
       
       expect(response1.headers['x-ratelimit-limit']).toBe(response2.headers['x-ratelimit-limit']);

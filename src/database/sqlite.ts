@@ -6,22 +6,23 @@ import fs from 'fs';
 export class SQLiteDatabase {
   private db: sqlite3.Database;
   private dbPath: string;
+  private initialized: boolean = false;
 
   constructor(dbPath: string) {
     this.dbPath = dbPath;
-    this.ensureDataDirectory();
+    
+    // Only ensure data directory for file-based databases
+    if (dbPath !== ':memory:') {
+      this.ensureDataDirectory();
+    }
+    
     this.db = new sqlite3.Database(dbPath);
     this.initializeTables();
   }
 
-  private ensureDataDirectory(): void {
-    const dataDir = path.dirname(this.dbPath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-  }
-
   private async initializeTables(): Promise<void> {
+    if (this.initialized) return;
+    
     const run = promisify(this.db.run.bind(this.db));
     
     try {
@@ -77,6 +78,7 @@ export class SQLiteDatabase {
         )
       `);
 
+      this.initialized = true;
       console.log('✅ Database tables initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing database tables:', error);
@@ -84,7 +86,23 @@ export class SQLiteDatabase {
     }
   }
 
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initialized) {
+      await this.initializeTables();
+    }
+  }
+
+  private ensureDataDirectory(): void {
+    const dataDir = path.dirname(this.dbPath);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  }
+
+
+
   async run(sql: string, params: any[] = []): Promise<any> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, function(err) {
         if (err) reject(err);
@@ -94,6 +112,7 @@ export class SQLiteDatabase {
   }
 
   async get(sql: string, params: any[] = []): Promise<any> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.get(sql, params, (err, row) => {
         if (err) reject(err);
@@ -103,6 +122,7 @@ export class SQLiteDatabase {
   }
 
   async all(sql: string, params: any[] = []): Promise<any[]> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, rows) => {
         if (err) reject(err);

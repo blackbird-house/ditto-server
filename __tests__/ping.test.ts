@@ -55,14 +55,14 @@ describe('Ping Endpoint', () => {
       await request(app)
         .post('/ping')
         .set('X-API-Secret', validSecret)
-        .expect(404);
+        .expect(400);
     });
 
     it('should not accept PUT requests', async () => {
       await request(app)
         .put('/ping')
         .set('X-API-Secret', validSecret)
-        .expect(404);
+        .expect(400);
     });
 
     it('should not accept DELETE requests', async () => {
@@ -76,7 +76,7 @@ describe('Ping Endpoint', () => {
       await request(app)
         .patch('/ping')
         .set('X-API-Secret', validSecret)
-        .expect(404);
+        .expect(400);
     });
   });
 });

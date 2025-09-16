@@ -10,8 +10,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     // Validate required fields
     if (!userData.firstName || !userData.lastName || !userData.email || !userData.phone) {
       res.status(400).json({
-        error: 'Missing required fields',
-        message: 'firstName, lastName, email, and phone are required'
+        error: 'Bad Request',
+        message: 'Invalid request data'
       });
       return;
     }
@@ -20,8 +20,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(userData.email)) {
       res.status(400).json({
-        error: 'Invalid email format',
-        message: 'Please provide a valid email address'
+        error: 'Bad Request',
+        message: 'Invalid request data'
       });
       return;
     }
@@ -39,15 +39,16 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       updatedAt: user.updatedAt.toISOString(),
     };
 
-    res.status(201).json({
-      message: 'User created successfully',
-      user: response
-    });
+    res.status(201).json(response);
   } catch (error) {
-    if (error instanceof Error && error.message === 'User with this email already exists') {
+    if (error instanceof Error && (
+      error.message === 'User with this email already exists' ||
+      error.message.includes('UNIQUE constraint failed: users.email') ||
+      error.message.includes('UNIQUE constraint failed: users.phone')
+    )) {
       res.status(409).json({
         error: 'Conflict',
-        message: error.message
+        message: 'Resource already exists'
       });
     } else {
       console.error('Error creating user:', error);
@@ -66,7 +67,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     if (!id) {
       res.status(400).json({
         error: 'Bad request',
-        message: 'User ID is required'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -76,7 +77,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     if (!user) {
       res.status(404).json({
         error: 'Not found',
-        message: 'User not found'
+        message: 'Resource not found'
       });
       return;
     }
@@ -108,7 +109,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
-        message: 'Invalid or missing authentication token'
+        message: 'Authentication required'
       });
       return;
     }
@@ -117,7 +118,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (!userData.firstName && !userData.lastName && !userData.email && !userData.phone) {
       res.status(400).json({
         error: 'Bad request',
-        message: 'At least one field (firstName, lastName, email, phone) must be provided for update'
+        message: 'Invalid request data'
       });
       return;
     }
@@ -139,7 +140,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (!updatedUser) {
       res.status(404).json({
         error: 'Not found',
-        message: 'User not found'
+        message: 'Resource not found'
       });
       return;
     }
@@ -160,7 +161,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (error instanceof Error && error.message === 'User with this email already exists') {
       res.status(409).json({
         error: 'Conflict',
-        message: error.message
+        message: 'Resource already exists'
       });
     } else {
       console.error('Error updating user:', error);
@@ -180,7 +181,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
-        message: 'Invalid or missing authentication token'
+        message: 'Authentication required'
       });
       return;
     }
@@ -190,7 +191,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     if (!user) {
       res.status(404).json({
         error: 'Not found',
-        message: 'User not found'
+        message: 'Resource not found'
       });
       return;
     }

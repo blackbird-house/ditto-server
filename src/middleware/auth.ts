@@ -15,7 +15,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   if (!authHeader) {
     res.status(401).json({
       error: 'Unauthorized',
-      message: 'Authorization header is required'
+      message: 'Authentication required'
     });
     return;
   }
@@ -27,7 +27,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   if (!token) {
     res.status(401).json({
       error: 'Unauthorized',
-      message: 'Token is required'
+      message: 'Authentication required'
     });
     return;
   }
@@ -38,7 +38,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     if (!decoded) {
       res.status(401).json({
         error: 'Unauthorized',
-        message: 'Invalid or expired token'
+        message: 'Authentication required'
       });
       return;
     }
@@ -53,7 +53,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
   } catch (error) {
     res.status(401).json({
       error: 'Unauthorized',
-      message: 'Invalid token'
+      message: 'Authentication required'
     });
   }
 };
