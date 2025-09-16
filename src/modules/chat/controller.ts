@@ -13,9 +13,9 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { participantId }: CreateChatRequest = req.body;
+    const { userId: otherUserId }: CreateChatRequest = req.body;
 
-    if (!participantId) {
+    if (!otherUserId) {
       res.status(400).json({
         error: 'Bad Request',
         message: 'Invalid request data'
@@ -23,7 +23,7 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (participantId === userId) {
+    if (otherUserId === userId) {
       res.status(400).json({
         error: 'Bad Request',
         message: 'Invalid request data'
@@ -31,12 +31,12 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const chat = await chatService.createChat(userId, participantId);
+    const chat = await chatService.createChat(userId, otherUserId);
 
     res.status(201).json({
       id: chat.id,
-      participant1Id: chat.participant1Id,
-      participant2Id: chat.participant2Id,
+      user1Id: chat.user1Id,
+      user2Id: chat.user2Id,
       createdAt: chat.createdAt.toISOString(),
       updatedAt: chat.updatedAt.toISOString()
     });
@@ -73,9 +73,9 @@ export const getUserChats = async (req: Request, res: Response): Promise<void> =
 
     const response = chats.map(chat => ({
       id: chat.id,
-      participant1Id: chat.participant1Id,
-      participant2Id: chat.participant2Id,
-      otherParticipant: chat.otherParticipant,
+      user1Id: chat.user1Id,
+      user2Id: chat.user2Id,
+      otherUser: chat.otherUser,
       lastMessage: chat.lastMessage ? {
         id: chat.lastMessage.id,
         content: chat.lastMessage.content,
@@ -136,9 +136,9 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
 
     const response = {
       id: chat.id,
-      participant1Id: chat.participant1Id,
-      participant2Id: chat.participant2Id,
-      otherParticipant: chat.otherParticipant,
+      user1Id: chat.user1Id,
+      user2Id: chat.user2Id,
+      otherUser: chat.otherUser,
       messages: chat.messages.map(message => ({
         id: message.id,
         chatId: message.chatId,

@@ -4,21 +4,21 @@ import { databaseService } from '../../database';
 import { userService } from '../users/service';
 
 class DatabaseChatService implements ChatService {
-  async createChat(userId: string, participantId: string): Promise<Chat> {
+  async createChat(userId: string, otherUserId: string): Promise<Chat> {
     // Validate that both users exist
     const user = await userService.getUserById(userId);
-    const participant = await userService.getUserById(participantId);
+    const otherUser = await userService.getUserById(otherUserId);
     
     if (!user) {
       throw new Error('User not found');
     }
     
-    if (!participant) {
-      throw new Error('Participant not found');
+    if (!otherUser) {
+      throw new Error('User not found');
     }
 
     // Check if chat already exists between these users
-    const existingChat = await databaseService.getChatByParticipants(userId, participantId);
+    const existingChat = await databaseService.getChatByParticipants(userId, otherUserId);
     if (existingChat) {
       return existingChat;
     }
@@ -27,8 +27,8 @@ class DatabaseChatService implements ChatService {
     const chatId = randomUUID();
     const chat: Chat = {
       id: chatId,
-      participant1Id: userId,
-      participant2Id: participantId,
+      user1Id: userId,
+      user2Id: otherUserId,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -48,12 +48,12 @@ class DatabaseChatService implements ChatService {
     const chatList: ChatListResponse[] = [];
 
     for (const chat of chats) {
-      // Get the other participant's info
-      const otherParticipantId = chat.otherParticipantId;
-      const otherParticipant = await userService.getUserById(otherParticipantId);
+      // Get the other user's info
+      const otherUserId = chat.otherUserId;
+      const otherUser = await userService.getUserById(otherUserId);
       
-      if (!otherParticipant) {
-        continue; // Skip if other participant doesn't exist
+      if (!otherUser) {
+        continue; // Skip if other user doesn't exist
       }
 
       // Get last message for this chat
@@ -61,12 +61,12 @@ class DatabaseChatService implements ChatService {
 
       const chatResponse: ChatListResponse = {
         id: chat.id,
-        participant1Id: chat.participant1Id,
-        participant2Id: chat.participant2Id,
-        otherParticipant: {
-          id: otherParticipant.id,
-          firstName: otherParticipant.firstName,
-          lastName: otherParticipant.lastName
+        user1Id: chat.user1Id,
+        user2Id: chat.user2Id,
+        otherUser: {
+          id: otherUser.id,
+          firstName: otherUser.firstName,
+          lastName: otherUser.lastName
         },
         ...(lastMessage && {
           lastMessage: {
@@ -98,17 +98,17 @@ class DatabaseChatService implements ChatService {
       return null;
     }
 
-    // Privacy check: user must be a participant in this chat
-    if (chat.participant1Id !== userId && chat.participant2Id !== userId) {
+    // Privacy check: user must be a user in this chat
+    if (chat.user1Id !== userId && chat.user2Id !== userId) {
       throw new Error('Access denied: You can only view your own chats');
     }
 
-    // Get the other participant's info
-    const otherParticipantId = chat.participant1Id === userId ? chat.participant2Id : chat.participant1Id;
-    const otherParticipant = await userService.getUserById(otherParticipantId);
+    // Get the other user's info
+    const otherUserId = chat.user1Id === userId ? chat.user2Id : chat.user1Id;
+    const otherUser = await userService.getUserById(otherUserId);
     
-    if (!otherParticipant) {
-      throw new Error('Other participant not found');
+    if (!otherUser) {
+      throw new Error('Other user not found');
     }
 
     // Get all messages for this chat
@@ -124,12 +124,12 @@ class DatabaseChatService implements ChatService {
 
     return {
       id: chat.id,
-      participant1Id: chat.participant1Id,
-      participant2Id: chat.participant2Id,
-      otherParticipant: {
-        id: otherParticipant.id,
-        firstName: otherParticipant.firstName,
-        lastName: otherParticipant.lastName
+      user1Id: chat.user1Id,
+      user2Id: chat.user2Id,
+      otherUser: {
+        id: otherUser.id,
+        firstName: otherUser.firstName,
+        lastName: otherUser.lastName
       },
       messages: formattedMessages,
       createdAt: new Date(chat.createdAt),
@@ -150,8 +150,8 @@ class DatabaseChatService implements ChatService {
       throw new Error('Chat not found');
     }
 
-    // Privacy check: user must be a participant in this chat
-    if (chat.participant1Id !== userId && chat.participant2Id !== userId) {
+    // Privacy check: user must be a user in this chat
+    if (chat.user1Id !== userId && chat.user2Id !== userId) {
       throw new Error('Access denied: You can only send messages to your own chats');
     }
 
@@ -196,8 +196,8 @@ class DatabaseChatService implements ChatService {
       throw new Error('Chat not found');
     }
 
-    // Privacy check: user must be a participant in this chat
-    if (chat.participant1Id !== userId && chat.participant2Id !== userId) {
+    // Privacy check: user must be a user in this chat
+    if (chat.user1Id !== userId && chat.user2Id !== userId) {
       throw new Error('Access denied: You can only view messages from your own chats');
     }
 

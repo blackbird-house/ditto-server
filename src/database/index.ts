@@ -35,11 +35,11 @@ export interface DatabaseService {
   // Chat operations
   createChat(chatData: {
     id: string;
-    participant1Id: string;
-    participant2Id: string;
+    user1Id: string;
+    user2Id: string;
   }): Promise<void>;
   getChatById(id: string): Promise<any>;
-  getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any>;
+  getChatByParticipants(user1Id: string, user2Id: string): Promise<any>;
   getUserChats(userId: string): Promise<any[]>;
   updateChatUpdatedAt(chatId: string): Promise<void>;
 
@@ -165,8 +165,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   // Chat operations
   async createChat(chatData: {
     id: string;
-    participant1Id: string;
-    participant2Id: string;
+    user1Id: string;
+    user2Id: string;
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createChat(chatData);
@@ -183,9 +183,9 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any> {
+  async getChatByParticipants(user1Id: string, user2Id: string): Promise<any> {
     if (this.sqliteDb) {
-      return this.sqliteDb.getChatByParticipants(participant1Id, participant2Id);
+      return this.sqliteDb.getChatByParticipants(user1Id, user2Id);
     } else {
       throw new Error('Database not configured');
     }

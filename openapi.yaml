@@ -733,9 +733,9 @@ paths:
             schema:
               type: object
               required:
-                - participantId
+                - userId
               properties:
-                participantId:
+                userId:
                   type: string
                   description: ID of the user to start a chat with
                   example: "123e4567-e89b-12d3-a456-426614174000"
@@ -750,10 +750,10 @@ paths:
                   id:
                     type: string
                     example: "123e4567-e89b-12d3-a456-426614174000"
-                  participant1Id:
+                  user1Id:
                     type: string
                     example: "123e4567-e89b-12d3-a456-426614174000"
-                  participant2Id:
+                  user2Id:
                     type: string
                     example: "987fcdeb-51a2-43d1-b456-426614174000"
                   createdAt:
@@ -791,7 +791,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '404':
-          description: Not Found - User or participant not found
+          description: Not Found - User not found
           content:
             application/json:
               schema:
@@ -925,7 +925,7 @@ paths:
   /chats/{chatId}:
     get:
       summary: Get chat by ID
-      description: Retrieves a specific chat with all its messages (only if user is a participant)
+      description: Retrieves a specific chat with all its messages (only if user is a user in the chat)
       operationId: getChatById
       security:
         - bearerAuth: []
@@ -948,10 +948,10 @@ paths:
                   id:
                     type: string
                     example: "123e4567-e89b-12d3-a456-426614174000"
-                  participant1Id:
+                  user1Id:
                     type: string
                     example: "123e4567-e89b-12d3-a456-426614174000"
-                  participant2Id:
+                  user2Id:
                     type: string
                     example: "987fcdeb-51a2-43d1-b456-426614174000"
                   otherParticipant:
@@ -1026,7 +1026,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '403':
-          description: Forbidden - User is not a participant in this chat
+          description: Forbidden - User is not a user in this chat
           content:
             application/json:
               schema:
@@ -1070,7 +1070,7 @@ paths:
   /chats/{chatId}/messages:
     post:
       summary: Send a message
-      description: Sends a message to a specific chat (only if user is a participant)
+      description: Sends a message to a specific chat (only if user is a user in the chat)
       operationId: sendMessage
       security:
         - bearerAuth: []
@@ -1151,7 +1151,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '403':
-          description: Forbidden - User is not a participant in this chat
+          description: Forbidden - User is not a user in this chat
           content:
             application/json:
               schema:
@@ -1194,7 +1194,7 @@ paths:
 
     get:
       summary: Get chat messages
-      description: Retrieves all messages from a specific chat (only if user is a participant)
+      description: Retrieves all messages from a specific chat (only if user is a user in the chat)
       operationId: getChatMessages
       security:
         - bearerAuth: []
@@ -1263,7 +1263,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '403':
-          description: Forbidden - User is not a participant in this chat
+          description: Forbidden - User is not a user in this chat
           content:
             application/json:
               schema:

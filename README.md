@@ -172,7 +172,7 @@ The API includes a simple 1-to-1 chat system with strong privacy controls:
 
 ### **Privacy & Security**
 - **User Isolation**: Each user can only see their own chats
-- **Access Control**: Users can only access chats where they are a participant
+- **Access Control**: Users can only access chats where they are a user
 - **Message Privacy**: Users can only view messages from chats they participate in
 - **Authentication Required**: All chat endpoints require valid JWT authentication
 
@@ -190,7 +190,7 @@ curl -X POST http://localhost:3000/chats \
   -H "X-API-Secret: dev-secret-key-12345" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"participantId": "other-user-id"}'
+  -d '{"userId": "other-user-id"}'
 
 # 2. Send a message
 curl -X POST http://localhost:3000/chats/CHAT_ID/messages \
