@@ -30,10 +30,6 @@ const config: Record<Environment, EnvironmentConfig> = {
       origin: getCorsOrigins(parseInt(process.env['PORT'] || '3000', 10)),
       credentials: true
     },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 1000 // limit each IP to 1000 requests per windowMs
-    },
     database: {
       url: process.env['DATABASE_URL'] || './data/ditto-dev.db',
       type: 'sqlite'
@@ -64,10 +60,6 @@ const config: Record<Environment, EnvironmentConfig> = {
     cors: {
       origin: getCorsOrigins(parseInt(process.env['PORT'] || '3001', 10)),
       credentials: true
-    },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 1000 // limit each IP to 1000 requests per windowMs
     },
     database: {
       url: process.env['DATABASE_URL'] || ':memory:',
@@ -100,10 +92,6 @@ const config: Record<Environment, EnvironmentConfig> = {
       origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : ['https://staging.ditto-server.com'],
       credentials: true
     },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 500 // limit each IP to 500 requests per windowMs
-    },
     database: {
       url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-staging',
       type: 'mongodb'
@@ -134,10 +122,6 @@ const config: Record<Environment, EnvironmentConfig> = {
     cors: {
       origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : ['https://api.ditto-server.com'],
       credentials: true
-    },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100 // limit each IP to 100 requests per windowMs
     },
     database: {
       url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-prod',

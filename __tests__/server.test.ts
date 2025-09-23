@@ -8,16 +8,9 @@ describe('Server Configuration', () => {
       expect(config).toBeDefined();
       expect(config.env).toBe('test');
       expect(config.port).toBeDefined();
-      expect(config.rateLimit).toBeDefined();
       expect(config.cors).toBeDefined();
     });
 
-    it('should have rate limiting configured', () => {
-      expect(config.rateLimit.windowMs).toBeDefined();
-      expect(config.rateLimit.max).toBeDefined();
-      expect(typeof config.rateLimit.windowMs).toBe('number');
-      expect(typeof config.rateLimit.max).toBe('number');
-    });
 
     it('should have CORS configured', () => {
       expect(config.cors).toBeDefined();
@@ -37,15 +30,6 @@ describe('Server Configuration', () => {
       expect(response.headers['vary']).toBe('Origin');
     });
 
-    it('should apply rate limiting middleware', async () => {
-      const response = await request(app)
-        .get('/ping')
-        .set('X-API-Secret', 'test-secret-key-67890')
-        .expect(204);
-      
-      expect(response.headers['x-ratelimit-limit']).toBeDefined();
-      expect(response.headers['x-ratelimit-remaining']).toBeDefined();
-    });
 
     it('should apply logging middleware', async () => {
       // This test verifies the logging middleware doesn't break the request

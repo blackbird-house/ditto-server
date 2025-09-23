@@ -35,21 +35,14 @@ export class AuthServiceImpl implements AuthService {
       throw new Error('Invalid phone number format');
     }
 
-    // Check rate limiting (max 3 OTP requests per phone per hour)
-    const sessionKey = `otp_${phone}`;
-    const existingSession = this.otpSessions.get(sessionKey);
-    
-    if (existingSession && existingSession.attempts >= 3) {
-      throw new Error('Too many OTP requests. Please try again later.');
-    }
-
     try {
       const { otpId } = await this.otpService.sendOtp(phone);
       
       // Track OTP session
+      const sessionKey = `otp_${phone}`;
       this.otpSessions.set(sessionKey, {
         otpId,
-        attempts: existingSession ? existingSession.attempts + 1 : 1,
+        attempts: 1,
         maxAttempts: 3
       });
 

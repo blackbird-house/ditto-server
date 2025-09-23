@@ -1,6 +1,5 @@
 import express, { Application } from 'express';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
@@ -52,10 +51,6 @@ app.use(inputValidationMiddleware);
 // Middleware
 app.use(express.json());
 app.use(cors(config.cors));
-
-// Rate limiting
-const limiter = rateLimit(config.rateLimit);
-app.use(limiter);
 
 // Logging middleware
 app.use((req, _res, next) => {

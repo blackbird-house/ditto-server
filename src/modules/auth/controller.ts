@@ -21,11 +21,6 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
         error: 'Invalid phone number',
         message: 'Please provide a valid phone number in international format (e.g., +1234567890)'
       });
-    } else if (error.message === 'Too many OTP requests. Please try again later.') {
-      res.status(429).json({
-        error: 'Too many requests',
-        message: error.message
-      });
     } else {
       console.error('Error sending OTP:', error);
       res.status(500).json({

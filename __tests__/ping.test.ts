@@ -27,19 +27,9 @@ describe('Ping Endpoint', () => {
       expect(response.headers['access-control-allow-credentials']).toBe('true');
     });
 
-    it('should include rate limiting headers', async () => {
-      const response = await request(app)
-        .get('/ping')
-        .set('X-API-Secret', validSecret)
-        .expect(204);
-      
-      expect(response.headers['x-ratelimit-limit']).toBeDefined();
-      expect(response.headers['x-ratelimit-remaining']).toBeDefined();
-      expect(response.headers['x-ratelimit-reset']).toBeDefined();
-    });
 
     it('should handle multiple requests', async () => {
-      // Make multiple requests to test rate limiting
+      // Make multiple requests to test server stability
       const promises = Array(5).fill(null).map(() => 
         request(app).get('/ping').set('X-API-Secret', validSecret).expect(204)
       );

@@ -23,7 +23,6 @@ describe('Environment-Specific Tests', () => {
       expect(config.features.enableDebugRoutes).toBe(true);
       expect(config.features.enableMockData).toBe(true);
       expect(config.features.enableExperimentalFeatures).toBe(true);
-      expect(config.rateLimit.max).toBe(1000);
     });
 
     it('should have debug endpoint available', async () => {
@@ -51,7 +50,6 @@ describe('Environment-Specific Tests', () => {
       expect(config.features.enableDebugRoutes).toBe(false);
       expect(config.features.enableMockData).toBe(false);
       expect(config.features.enableExperimentalFeatures).toBe(false);
-      expect(config.rateLimit.max).toBe(500);
     });
 
     it('should not have debug endpoint available', async () => {
@@ -76,7 +74,6 @@ describe('Environment-Specific Tests', () => {
       expect(config.features.enableDebugRoutes).toBe(false);
       expect(config.features.enableMockData).toBe(false);
       expect(config.features.enableExperimentalFeatures).toBe(false);
-      expect(config.rateLimit.max).toBe(100);
     });
 
     it('should not have debug endpoint available', async () => {
@@ -96,7 +93,6 @@ describe('Environment-Specific Tests', () => {
 
     it('should have test configuration', () => {
       expect(config.env).toBe('test');
-      expect(config.rateLimit.max).toBe(1000); // Same as development
     });
 
     it('should have debug endpoint available in test', async () => {

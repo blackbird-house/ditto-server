@@ -51,16 +51,6 @@ paths:
                   message:
                     type: string
                     example: "Authentication required"
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Too many requests, please try again later."
         '500':
           description: Internal Server Error - Unexpected server error
           content:
@@ -600,19 +590,6 @@ paths:
                   message:
                     type: string
                     example: "Please provide a valid phone number in international format (e.g., +1234567890)"
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Too many requests"
-                  message:
-                    type: string
-                    example: "Too many OTP requests. Please try again later."
         '500':
           description: Internal Server Error
           content:

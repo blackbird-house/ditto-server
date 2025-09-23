@@ -140,7 +140,6 @@ ditto-server/
 │   ├── ping.test.ts   # Ping endpoint tests
 │   ├── server.test.ts # Server configuration tests
 │   ├── environments.test.ts # Environment tests
-│   ├── rate-limiting.test.ts # Rate limiting tests
 │   ├── users.test.ts  # User module tests
 │   ├── auth.test.ts   # Authentication module tests
 │   ├── chat.test.ts   # Chat messaging module tests
@@ -300,7 +299,6 @@ To use the API client:
 - **Express.js** - Web framework
 - **Yarn** - Package manager
 - **CORS** - Cross-origin resource sharing
-- **Rate Limiting** - Request throttling
 - **Environment Configuration** - Multi-environment support
 - **Swagger UI** - Interactive API documentation
 - **OpenAPI 3.0** - API specification standard
@@ -324,21 +322,18 @@ To use the API client:
 ### Development Environment
 - **Purpose**: Unreliable playground for backend engineers
 - **Features**: Debug routes, experimental features, mock data, detailed startup logs
-- **Rate Limit**: 1000 requests/15min
 - **Log Level**: Debug
 - **Start**: `yarn dev`
 
 ### Staging Environment
 - **Purpose**: Stable pre-production environment
 - **Features**: Production-like but with testing capabilities
-- **Rate Limit**: 500 requests/15min
 - **Log Level**: Info
 - **Start**: `yarn staging`
 
 ### Production Environment
 - **Purpose**: Customer-facing stable environment
 - **Features**: Optimized for performance and security, minimal startup logs
-- **Rate Limit**: 100 requests/15min
 - **Log Level**: Warn
 - **Start**: `yarn start`
 
@@ -449,7 +444,6 @@ The API returns consistent JSON error responses for all error scenarios:
   - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Authentication required"}`
 - **404** - Not Found (resource doesn't exist)
 - **409** - Conflict (duplicate data)
-- **429** - Too Many Requests (rate limit exceeded)
 - **500** - Internal Server Error
   - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later."}`
   - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","details":"Specific error message","stack":"Full error stack trace"}`
