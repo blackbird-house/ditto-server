@@ -1,7 +1,7 @@
 export interface Chat {
   id: string;
-  participant1Id: string;
-  participant2Id: string;
+  user1Id: string;
+  user2Id: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,13 +16,13 @@ export interface Message {
 }
 
 export interface CreateChatRequest {
-  participantId: string; // The other user to chat with
+  userId: string; // The other user to chat with
 }
 
 export interface CreateChatResponse {
   id: string;
-  participant1Id: string;
-  participant2Id: string;
+  user1Id: string;
+  user2Id: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,9 +42,9 @@ export interface SendMessageResponse {
 
 export interface ChatWithMessages {
   id: string;
-  participant1Id: string;
-  participant2Id: string;
-  otherParticipant: {
+  user1Id: string;
+  user2Id: string;
+  otherUser: {
     id: string;
     firstName: string;
     lastName: string;
@@ -56,9 +56,9 @@ export interface ChatWithMessages {
 
 export interface ChatListResponse {
   id: string;
-  participant1Id: string;
-  participant2Id: string;
-  otherParticipant: {
+  user1Id: string;
+  user2Id: string;
+  otherUser: {
     id: string;
     firstName: string;
     lastName: string;
@@ -74,9 +74,9 @@ export interface ChatListResponse {
 }
 
 export interface ChatService {
-  createChat(userId: string, participantId: string): Promise<Chat>;
+  createChat(userId: string, otherUserId: string): Promise<Chat>;
   getUserChats(userId: string): Promise<ChatListResponse[]>;
   getChatById(userId: string, chatId: string): Promise<ChatWithMessages | null>;
   sendMessage(userId: string, chatId: string, content: string): Promise<Message>;
-  getChatMessages(userId: string, chatId: string): Promise<Message[]>;
+  getChatMessages(userId: string, chatId: string, limit?: number, offset?: number): Promise<Message[]>;
 }

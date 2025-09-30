@@ -1,4 +1,14 @@
 import { EnvironmentConfig, Environment } from '../types';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from environment-specific .env file
+const env = (process.env['NODE_ENV'] || 'development') as Environment;
+const envFile = `.env.${env}`;
+
+// Try to load environment-specific file first, then fallback to .env
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // Helper function to generate CORS origins based on port
 const getCorsOrigins = (port: number): string[] => {
@@ -20,10 +30,6 @@ const config: Record<Environment, EnvironmentConfig> = {
       origin: getCorsOrigins(parseInt(process.env['PORT'] || '3000', 10)),
       credentials: true
     },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 1000 // limit each IP to 1000 requests per windowMs
-    },
     database: {
       url: process.env['DATABASE_URL'] || './data/ditto-dev.db',
       type: 'sqlite'
@@ -34,8 +40,16 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: true
     },
     secret: {
-      key: process.env['API_SECRET'] || 'dev-secret-key-12345',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '3m'
     }
   },
 
@@ -47,12 +61,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       origin: getCorsOrigins(parseInt(process.env['PORT'] || '3001', 10)),
       credentials: true
     },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 1000 // limit each IP to 1000 requests per windowMs
-    },
     database: {
-      url: process.env['DATABASE_URL'] || './data/ditto-test.db',
+      url: process.env['DATABASE_URL'] || ':memory:',
       type: 'sqlite'
     },
     features: {
@@ -61,8 +71,16 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: true
     },
     secret: {
-      key: process.env['API_SECRET'] || 'test-secret-key-67890',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '3m'
     }
   },
   
@@ -74,10 +92,6 @@ const config: Record<Environment, EnvironmentConfig> = {
       origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : ['https://staging.ditto-server.com'],
       credentials: true
     },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 500 // limit each IP to 500 requests per windowMs
-    },
     database: {
       url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-staging',
       type: 'mongodb'
@@ -88,8 +102,16 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: false
     },
     secret: {
-      key: process.env['API_SECRET'] || 'staging-secret-key-abcdef',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '3m'
     }
   },
   
@@ -101,10 +123,6 @@ const config: Record<Environment, EnvironmentConfig> = {
       origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : ['https://api.ditto-server.com'],
       credentials: true
     },
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100 // limit each IP to 100 requests per windowMs
-    },
     database: {
       url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-prod',
       type: 'mongodb'
@@ -115,12 +133,18 @@ const config: Record<Environment, EnvironmentConfig> = {
       enableExperimentalFeatures: false
     },
     secret: {
-      key: process.env['API_SECRET'] || 'prod-secret-key-xyz789',
+      key: process.env['API_SECRET'] || (() => {
+        throw new Error('API_SECRET environment variable is required');
+      })(),
       headerName: 'X-API-Secret'
+    },
+    jwt: {
+      secret: process.env['JWT_SECRET'] || (() => {
+        throw new Error('JWT_SECRET environment variable is required');
+      })(),
+      expiresIn: '3m'
     }
   }
 };
-
-const env = (process.env['NODE_ENV'] || 'development') as Environment;
 
 export default config[env];

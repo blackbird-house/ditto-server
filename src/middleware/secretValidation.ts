@@ -17,8 +17,7 @@ export const secretValidationMiddleware = (req: Request, res: Response, next: Ne
   if (!secretHeader) {
     res.status(401).json({
       error: 'Unauthorized',
-      message: `Missing required header: ${config.secret.headerName}`,
-      code: 'MISSING_SECRET_HEADER'
+      message: 'Authentication required'
     });
     return;
   }
@@ -26,8 +25,7 @@ export const secretValidationMiddleware = (req: Request, res: Response, next: Ne
   if (secretHeader !== config.secret.key) {
     res.status(401).json({
       error: 'Unauthorized',
-      message: 'Invalid API secret',
-      code: 'INVALID_SECRET'
+      message: 'Authentication required'
     });
     return;
   }

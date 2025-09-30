@@ -34,7 +34,6 @@ export const errorHandler = (
   res.status(500).json({
     error: 'Internal Server Error',
     message: 'An unexpected error occurred. Please try again later.',
-    code: 'INTERNAL_SERVER_ERROR',
     ...((config.env === 'development' || config.env === 'test') && {
       details: error.message,
       stack: error.stack

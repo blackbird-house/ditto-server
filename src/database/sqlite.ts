@@ -6,22 +6,23 @@ import fs from 'fs';
 export class SQLiteDatabase {
   private db: sqlite3.Database;
   private dbPath: string;
+  private initialized: boolean = false;
 
   constructor(dbPath: string) {
     this.dbPath = dbPath;
-    this.ensureDataDirectory();
+    
+    // Only ensure data directory for file-based databases
+    if (dbPath !== ':memory:') {
+      this.ensureDataDirectory();
+    }
+    
     this.db = new sqlite3.Database(dbPath);
     this.initializeTables();
   }
 
-  private ensureDataDirectory(): void {
-    const dataDir = path.dirname(this.dbPath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-  }
-
   private async initializeTables(): Promise<void> {
+    if (this.initialized) return;
+    
     const run = promisify(this.db.run.bind(this.db));
     
     try {
@@ -53,13 +54,13 @@ export class SQLiteDatabase {
       await run(`
         CREATE TABLE IF NOT EXISTS chats (
           id TEXT PRIMARY KEY,
-          participant1Id TEXT NOT NULL,
-          participant2Id TEXT NOT NULL,
+          user1Id TEXT NOT NULL,
+          user2Id TEXT NOT NULL,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
           updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (participant1Id) REFERENCES users (id),
-          FOREIGN KEY (participant2Id) REFERENCES users (id),
-          UNIQUE (participant1Id, participant2Id)
+          FOREIGN KEY (user1Id) REFERENCES users (id),
+          FOREIGN KEY (user2Id) REFERENCES users (id),
+          UNIQUE (user1Id, user2Id)
         )
       `);
 
@@ -77,6 +78,7 @@ export class SQLiteDatabase {
         )
       `);
 
+      this.initialized = true;
       console.log('✅ Database tables initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing database tables:', error);
@@ -84,7 +86,23 @@ export class SQLiteDatabase {
     }
   }
 
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initialized) {
+      await this.initializeTables();
+    }
+  }
+
+  private ensureDataDirectory(): void {
+    const dataDir = path.dirname(this.dbPath);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  }
+
+
+
   async run(sql: string, params: any[] = []): Promise<any> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, function(err) {
         if (err) reject(err);
@@ -94,6 +112,7 @@ export class SQLiteDatabase {
   }
 
   async get(sql: string, params: any[] = []): Promise<any> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.get(sql, params, (err, row) => {
         if (err) reject(err);
@@ -103,6 +122,7 @@ export class SQLiteDatabase {
   }
 
   async all(sql: string, params: any[] = []): Promise<any[]> {
+    await this.ensureInitialized();
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, rows) => {
         if (err) reject(err);
@@ -198,12 +218,12 @@ export class SQLiteDatabase {
   // Chat operations
   async createChat(chatData: {
     id: string;
-    participant1Id: string;
-    participant2Id: string;
+    user1Id: string;
+    user2Id: string;
   }): Promise<void> {
     await this.run(
-      `INSERT INTO chats (id, participant1Id, participant2Id) VALUES (?, ?, ?)`,
-      [chatData.id, chatData.participant1Id, chatData.participant2Id]
+      `INSERT INTO chats (id, user1Id, user2Id) VALUES (?, ?, ?)`,
+      [chatData.id, chatData.user1Id, chatData.user2Id]
     );
   }
 
@@ -211,12 +231,12 @@ export class SQLiteDatabase {
     return this.get('SELECT * FROM chats WHERE id = ?', [id]);
   }
 
-  async getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any> {
+  async getChatByParticipants(user1Id: string, user2Id: string): Promise<any> {
     return this.get(
       `SELECT * FROM chats WHERE 
-       (participant1Id = ? AND participant2Id = ?) OR 
-       (participant1Id = ? AND participant2Id = ?)`,
-      [participant1Id, participant2Id, participant2Id, participant1Id]
+       (user1Id = ? AND user2Id = ?) OR 
+       (user1Id = ? AND user2Id = ?)`,
+      [user1Id, user2Id, user2Id, user1Id]
     );
   }
 
@@ -224,11 +244,11 @@ export class SQLiteDatabase {
     return this.all(
       `SELECT c.*, 
               CASE 
-                WHEN c.participant1Id = ? THEN c.participant2Id 
-                ELSE c.participant1Id 
-              END as otherParticipantId
+                WHEN c.user1Id = ? THEN c.user2Id 
+                ELSE c.user1Id 
+              END as otherUserId
        FROM chats c 
-       WHERE c.participant1Id = ? OR c.participant2Id = ?
+       WHERE c.user1Id = ? OR c.user2Id = ?
        ORDER BY c.updatedAt DESC`,
       [userId, userId, userId]
     );
@@ -254,10 +274,10 @@ export class SQLiteDatabase {
     );
   }
 
-  async getChatMessages(chatId: string): Promise<any[]> {
+  async getChatMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
     return this.all(
-      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt ASC',
-      [chatId]
+      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?',
+      [chatId, limit, offset]
     );
   }
 

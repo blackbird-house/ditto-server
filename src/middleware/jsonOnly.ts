@@ -19,8 +19,7 @@ export const jsonOnlyMiddleware = (req: Request, res: Response, next: NextFuncti
     if (!contentType || !contentType.includes('application/json')) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Content-Type must be application/json',
-        code: 'INVALID_CONTENT_TYPE'
+        message: 'Invalid request format'
       });
       return;
     }

@@ -49,6 +49,8 @@ jspm_packages/
 
 # dotenv environment variables file
 .env
+.env.*
+!.env.example
 
 # Database files (development)
 data/

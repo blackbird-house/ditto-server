@@ -37,10 +37,7 @@ paths:
                     example: "Bad Request"
                   message:
                     type: string
-                    example: "Content-Type must be application/json"
-                  code:
-                    type: string
-                    example: "INVALID_CONTENT_TYPE"
+                    example: "Invalid request format"
         '401':
           description: Unauthorized - Missing or invalid API secret
           content:
@@ -53,20 +50,7 @@ paths:
                     example: "Unauthorized"
                   message:
                     type: string
-                    example: "Missing required header: X-API-Secret"
-                  code:
-                    type: string
-                    example: "MISSING_SECRET_HEADER"
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Too many requests, please try again later."
+                    example: "Authentication required"
         '500':
           description: Internal Server Error - Unexpected server error
           content:
@@ -80,9 +64,6 @@ paths:
                   message:
                     type: string
                     example: "An unexpected error occurred. Please try again later."
-                  code:
-                    type: string
-                    example: "INTERNAL_SERVER_ERROR"
       tags:
         - Health
   /debug/env:
@@ -129,10 +110,7 @@ paths:
                     example: "Unauthorized"
                   message:
                     type: string
-                    example: "Missing required header: X-API-Secret"
-                  code:
-                    type: string
-                    example: "MISSING_SECRET_HEADER"
+                    example: "Authentication required"
         '404':
           description: Not Found - Debug endpoint not available in this environment
           content:
@@ -203,9 +181,6 @@ paths:
                   message:
                     type: string
                     example: "An unexpected error occurred. Please try again later."
-                  code:
-                    type: string
-                    example: "INTERNAL_SERVER_ERROR"
                   details:
                     type: string
                     example: "Test error for error handling demonstration"
@@ -360,7 +335,7 @@ paths:
                     example: "Unauthorized"
                   message:
                     type: string
-                    example: "Invalid or missing authentication token"
+                    example: "Authentication required"
         '404':
           description: User not found
           content:
@@ -426,7 +401,7 @@ paths:
                     example: "Unauthorized"
                   message:
                     type: string
-                    example: "Invalid or missing authentication token"
+                    example: "Authentication required"
         '404':
           description: User not found
           content:
@@ -524,7 +499,7 @@ paths:
                     example: "Bad request"
                   message:
                     type: string
-                    example: "At least one field (firstName, lastName, email, phone) must be provided for update"
+                    example: "Invalid request data"
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -537,7 +512,7 @@ paths:
                     example: "Unauthorized"
                   message:
                     type: string
-                    example: "Invalid or missing authentication token"
+                    example: "Authentication required"
         '404':
           description: User not found
           content:
@@ -615,19 +590,6 @@ paths:
                   message:
                     type: string
                     example: "Please provide a valid phone number in international format (e.g., +1234567890)"
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Too many requests"
-                  message:
-                    type: string
-                    example: "Too many OTP requests. Please try again later."
         '500':
           description: Internal Server Error
           content:
@@ -748,9 +710,9 @@ paths:
             schema:
               type: object
               required:
-                - participantId
+                - userId
               properties:
-                participantId:
+                userId:
                   type: string
                   description: ID of the user to start a chat with
                   example: "123e4567-e89b-12d3-a456-426614174000"
@@ -762,29 +724,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  id:
                     type: string
-                    example: "Chat created successfully"
-                  chat:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        example: "123e4567-e89b-12d3-a456-426614174000"
-                      participant1Id:
-                        type: string
-                        example: "123e4567-e89b-12d3-a456-426614174000"
-                      participant2Id:
-                        type: string
-                        example: "987fcdeb-51a2-43d1-b456-426614174000"
-                      createdAt:
-                        type: string
-                        format: date-time
-                        example: "2025-09-14T16:32:26.000Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        example: "2025-09-14T16:32:26.000Z"
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  user1Id:
+                    type: string
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  user2Id:
+                    type: string
+                    example: "987fcdeb-51a2-43d1-b456-426614174000"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:32:26.000Z"
         '400':
           description: Bad Request - Invalid data
           content:
@@ -797,7 +749,7 @@ paths:
                     example: "Bad Request"
                   message:
                     type: string
-                    example: "Participant ID is required"
+                    example: "Invalid request data"
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -812,7 +764,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '404':
-          description: Not Found - User or participant not found
+          description: Not Found - User not found
           content:
             application/json:
               schema:
@@ -852,61 +804,51 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Chats retrieved successfully"
-                  chats:
-                    type: array
-                    items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    user1Id:
+                      type: string
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    user2Id:
+                      type: string
+                      example: "987fcdeb-51a2-43d1-b456-426614174000"
+                    otherUser:
                       type: object
                       properties:
                         id:
                           type: string
-                          example: "123e4567-e89b-12d3-a456-426614174000"
-                        participant1Id:
-                          type: string
-                          example: "123e4567-e89b-12d3-a456-426614174000"
-                        participant2Id:
-                          type: string
                           example: "987fcdeb-51a2-43d1-b456-426614174000"
-                        otherParticipant:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              example: "987fcdeb-51a2-43d1-b456-426614174000"
-                            firstName:
-                              type: string
-                              example: "Jane"
-                            lastName:
-                              type: string
-                              example: "Smith"
-                        lastMessage:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              example: "456e7890-e89b-12d3-a456-426614174000"
-                            content:
-                              type: string
-                              example: "Hello, how are you?"
-                            senderId:
-                              type: string
-                              example: "123e4567-e89b-12d3-a456-426614174000"
-                            createdAt:
-                              type: string
-                              format: date-time
-                              example: "2025-09-14T16:32:26.000Z"
+                        firstName:
+                          type: string
+                          example: "Jane"
+                        lastName:
+                          type: string
+                          example: "Smith"
+                    lastMessage:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "456e7890-e89b-12d3-a456-426614174000"
+                        content:
+                          type: string
+                          example: "Hello, how are you?"
+                        senderId:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
                         createdAt:
                           type: string
                           format: date-time
                           example: "2025-09-14T16:32:26.000Z"
-                        updatedAt:
-                          type: string
-                          format: date-time
-                          example: "2025-09-14T16:32:26.000Z"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: "2025-09-14T16:32:26.000Z"
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -952,7 +894,7 @@ paths:
   /chats/{chatId}:
     get:
       summary: Get chat by ID
-      description: Retrieves a specific chat with all its messages (only if user is a participant)
+      description: Retrieves a specific chat with all its messages (only if user is a user in the chat)
       operationId: getChatById
       security:
         - bearerAuth: []
@@ -972,66 +914,52 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  id:
                     type: string
-                    example: "Chat retrieved successfully"
-                  chat:
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  user1Id:
+                    type: string
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  user2Id:
+                    type: string
+                    example: "987fcdeb-51a2-43d1-b456-426614174000"
+                  otherUser:
                     type: object
                     properties:
                       id:
                         type: string
-                        example: "123e4567-e89b-12d3-a456-426614174000"
-                      participant1Id:
-                        type: string
-                        example: "123e4567-e89b-12d3-a456-426614174000"
-                      participant2Id:
-                        type: string
                         example: "987fcdeb-51a2-43d1-b456-426614174000"
-                      otherParticipant:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                            example: "987fcdeb-51a2-43d1-b456-426614174000"
-                          firstName:
-                            type: string
-                            example: "Jane"
-                          lastName:
-                            type: string
-                            example: "Smith"
-                      messages:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              example: "456e7890-e89b-12d3-a456-426614174000"
-                            chatId:
-                              type: string
-                              example: "123e4567-e89b-12d3-a456-426614174000"
-                            senderId:
-                              type: string
-                              example: "123e4567-e89b-12d3-a456-426614174000"
-                            content:
-                              type: string
-                              example: "Hello, how are you?"
-                            createdAt:
-                              type: string
-                              format: date-time
-                              example: "2025-09-14T16:32:26.000Z"
-                            updatedAt:
-                              type: string
-                              format: date-time
-                              example: "2025-09-14T16:32:26.000Z"
-                      createdAt:
+                      firstName:
                         type: string
-                        format: date-time
-                        example: "2025-09-14T16:32:26.000Z"
-                      updatedAt:
+                        example: "Jane"
+                      lastName:
                         type: string
-                        format: date-time
-                        example: "2025-09-14T16:32:26.000Z"
+                        example: "Smith"
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "456e7890-e89b-12d3-a456-426614174000"
+                        chatId:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        senderId:
+                          type: string
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        content:
+                          type: string
+                          example: "Hello, how are you?"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2025-09-14T16:32:26.000Z"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:32:26.000Z"
         '400':
           description: Bad Request - Invalid chat ID
           content:
@@ -1044,7 +972,7 @@ paths:
                     example: "Bad Request"
                   message:
                     type: string
-                    example: "Chat ID is required"
+                    example: "Invalid request data"
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -1059,7 +987,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '403':
-          description: Forbidden - User is not a participant in this chat
+          description: Forbidden - User is not a user in this chat
           content:
             application/json:
               schema:
@@ -1103,7 +1031,7 @@ paths:
   /chats/{chatId}/messages:
     post:
       summary: Send a message
-      description: Sends a message to a specific chat (only if user is a participant)
+      description: Sends a message to a specific chat (only if user is a user in the chat)
       operationId: sendMessage
       security:
         - bearerAuth: []
@@ -1137,32 +1065,22 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  id:
                     type: string
-                    example: "Message sent successfully"
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        example: "456e7890-e89b-12d3-a456-426614174000"
-                      chatId:
-                        type: string
-                        example: "123e4567-e89b-12d3-a456-426614174000"
-                      senderId:
-                        type: string
-                        example: "123e4567-e89b-12d3-a456-426614174000"
-                      content:
-                        type: string
-                        example: "Hello, how are you?"
-                      createdAt:
-                        type: string
-                        format: date-time
-                        example: "2025-09-14T16:32:26.000Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        example: "2025-09-14T16:32:26.000Z"
+                    example: "456e7890-e89b-12d3-a456-426614174000"
+                  chatId:
+                    type: string
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  senderId:
+                    type: string
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  content:
+                    type: string
+                    example: "Hello, how are you?"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-14T16:32:26.000Z"
         '400':
           description: Bad Request - Invalid data
           content:
@@ -1175,7 +1093,7 @@ paths:
                     example: "Bad Request"
                   message:
                     type: string
-                    example: "Message content is required"
+                    example: "Invalid request data"
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -1190,7 +1108,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '403':
-          description: Forbidden - User is not a participant in this chat
+          description: Forbidden - User is not a user in this chat
           content:
             application/json:
               schema:
@@ -1233,7 +1151,7 @@ paths:
 
     get:
       summary: Get chat messages
-      description: Retrieves all messages from a specific chat (only if user is a participant)
+      description: Retrieves messages from a specific chat with pagination (only if user is a user in the chat). Messages are ordered by creation date, most recent first.
       operationId: getChatMessages
       security:
         - bearerAuth: []
@@ -1245,42 +1163,48 @@ paths:
           schema:
             type: string
             example: "123e4567-e89b-12d3-a456-426614174000"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of messages to return (1-20, default 20)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 20
+            example: 20
+        - name: offset
+          in: query
+          required: false
+          description: Number of messages to skip (default 0)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+            example: 0
       responses:
         '200':
           description: Messages retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Messages retrieved successfully"
-                  messages:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          example: "456e7890-e89b-12d3-a456-426614174000"
-                        chatId:
-                          type: string
-                          example: "123e4567-e89b-12d3-a456-426614174000"
-                        senderId:
-                          type: string
-                          example: "123e4567-e89b-12d3-a456-426614174000"
-                        content:
-                          type: string
-                          example: "Hello, how are you?"
-                        createdAt:
-                          type: string
-                          format: date-time
-                          example: "2025-09-14T16:32:26.000Z"
-                        updatedAt:
-                          type: string
-                          format: date-time
-                          example: "2025-09-14T16:32:26.000Z"
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "456e7890-e89b-12d3-a456-426614174000"
+                    senderId:
+                      type: string
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    content:
+                      type: string
+                      example: "Hello, how are you?"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: "2025-09-14T16:32:26.000Z"
         '400':
           description: Bad Request - Invalid chat ID
           content:
@@ -1293,7 +1217,7 @@ paths:
                     example: "Bad Request"
                   message:
                     type: string
-                    example: "Chat ID is required"
+                    example: "Invalid request data"
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -1308,7 +1232,7 @@ paths:
                     type: string
                     example: "Authentication required"
         '403':
-          description: Forbidden - User is not a participant in this chat
+          description: Forbidden - User is not a user in this chat
           content:
             application/json:
               schema:

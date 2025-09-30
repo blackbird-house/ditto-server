@@ -35,11 +35,11 @@ export interface DatabaseService {
   // Chat operations
   createChat(chatData: {
     id: string;
-    participant1Id: string;
-    participant2Id: string;
+    user1Id: string;
+    user2Id: string;
   }): Promise<void>;
   getChatById(id: string): Promise<any>;
-  getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any>;
+  getChatByParticipants(user1Id: string, user2Id: string): Promise<any>;
   getUserChats(userId: string): Promise<any[]>;
   updateChatUpdatedAt(chatId: string): Promise<void>;
 
@@ -50,7 +50,7 @@ export interface DatabaseService {
     senderId: string;
     content: string;
   }): Promise<void>;
-  getChatMessages(chatId: string): Promise<any[]>;
+  getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]>;
   getLastMessageForChat(chatId: string): Promise<any>;
 }
 
@@ -165,8 +165,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   // Chat operations
   async createChat(chatData: {
     id: string;
-    participant1Id: string;
-    participant2Id: string;
+    user1Id: string;
+    user2Id: string;
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createChat(chatData);
@@ -183,9 +183,9 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getChatByParticipants(participant1Id: string, participant2Id: string): Promise<any> {
+  async getChatByParticipants(user1Id: string, user2Id: string): Promise<any> {
     if (this.sqliteDb) {
-      return this.sqliteDb.getChatByParticipants(participant1Id, participant2Id);
+      return this.sqliteDb.getChatByParticipants(user1Id, user2Id);
     } else {
       throw new Error('Database not configured');
     }
@@ -221,9 +221,9 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getChatMessages(chatId: string): Promise<any[]> {
+  async getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]> {
     if (this.sqliteDb) {
-      return this.sqliteDb.getChatMessages(chatId);
+      return this.sqliteDb.getChatMessages(chatId, limit, offset);
     } else {
       throw new Error('Database not configured');
     }

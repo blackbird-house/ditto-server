@@ -6,10 +6,6 @@ export interface EnvironmentConfig {
     origin: string[];
     credentials: boolean;
   };
-  rateLimit: {
-    windowMs: number;
-    max: number;
-  };
   database: {
     url: string;
     type: 'sqlite' | 'mongodb' | 'postgresql';
@@ -22,6 +18,10 @@ export interface EnvironmentConfig {
   secret: {
     key: string;
     headerName: string;
+  };
+  jwt: {
+    secret: string;
+    expiresIn: string;
   };
 }
 

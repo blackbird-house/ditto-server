@@ -4,10 +4,78 @@ A ready-to-use easy-to-clone REST API server built with Node.js and Express.
 
 ## 🚀 Quick Start
 
+### 1. Install Dependencies
 ```bash
-# Install dependencies
 yarn install
+```
 
+### 2. Environment Setup (REQUIRED)
+**⚠️ You must create environment files** in the project root. The application will automatically load the correct file based on `NODE_ENV`:
+
+#### For Development:
+Create `.env.development`:
+```bash
+# Development Environment Configuration
+NODE_ENV=development
+PORT=3000
+
+# API Secrets
+API_SECRET=dev-secret-key-12345
+
+# JWT Configuration (for future secure implementation)
+JWT_SECRET=dev-jwt-secret-key-12345
+
+# Database Configuration
+DATABASE_URL=./data/ditto-dev.db
+
+# CORS Configuration (comma-separated origins)
+CORS_ORIGIN=http://localhost:3000,http://localhost:3001
+
+# OTP Service Configuration (for future real OTP service)
+# OTP_SERVICE_API_KEY=your-otp-service-api-key
+# OTP_SERVICE_URL=https://api.otp-service.com
+
+# Logging
+LOG_LEVEL=debug
+```
+
+#### For Testing:
+Create `.env.test`:
+```bash
+# Test Environment Configuration
+NODE_ENV=test
+PORT=3001
+
+# API Secrets
+API_SECRET=test-secret-key-67890
+
+# JWT Configuration (for future secure implementation)
+JWT_SECRET=test-jwt-secret-key-67890
+
+# Database Configuration
+DATABASE_URL=:memory:
+
+# CORS Configuration (comma-separated origins)
+CORS_ORIGIN=http://localhost:3001,http://localhost:3002
+
+# OTP Service Configuration (for future real OTP service)
+# OTP_SERVICE_API_KEY=your-otp-service-api-key
+# OTP_SERVICE_URL=https://api.otp-service.com
+
+# Logging
+LOG_LEVEL=error
+```
+
+> **🔒 Security Note**: The application now requires environment variables for all secrets. No fallback values are provided, ensuring that secrets must be explicitly configured for each environment.
+
+> **📁 Environment Loading**: The application automatically loads `.env.{NODE_ENV}` files. For example:
+> - `NODE_ENV=development` → loads `.env.development`
+> - `NODE_ENV=test` → loads `.env.test`
+> - `NODE_ENV=production` → loads `.env.production`
+> - Falls back to `.env` if environment-specific file doesn't exist
+
+### 3. Run the Server
+```bash
 # Development environment (unreliable, for BE engineers to play with)
 yarn dev
 
@@ -72,7 +140,6 @@ ditto-server/
 │   ├── ping.test.ts   # Ping endpoint tests
 │   ├── server.test.ts # Server configuration tests
 │   ├── environments.test.ts # Environment tests
-│   ├── rate-limiting.test.ts # Rate limiting tests
 │   ├── users.test.ts  # User module tests
 │   ├── auth.test.ts   # Authentication module tests
 │   ├── chat.test.ts   # Chat messaging module tests
@@ -172,7 +239,7 @@ The API includes a simple 1-to-1 chat system with strong privacy controls:
 
 ### **Privacy & Security**
 - **User Isolation**: Each user can only see their own chats
-- **Access Control**: Users can only access chats where they are a participant
+- **Access Control**: Users can only access chats where they are a user
 - **Message Privacy**: Users can only view messages from chats they participate in
 - **Authentication Required**: All chat endpoints require valid JWT authentication
 
@@ -190,7 +257,7 @@ curl -X POST http://localhost:3000/chats \
   -H "X-API-Secret: dev-secret-key-12345" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"participantId": "other-user-id"}'
+  -d '{"userId": "other-user-id"}'
 
 # 2. Send a message
 curl -X POST http://localhost:3000/chats/CHAT_ID/messages \
@@ -232,7 +299,6 @@ To use the API client:
 - **Express.js** - Web framework
 - **Yarn** - Package manager
 - **CORS** - Cross-origin resource sharing
-- **Rate Limiting** - Request throttling
 - **Environment Configuration** - Multi-environment support
 - **Swagger UI** - Interactive API documentation
 - **OpenAPI 3.0** - API specification standard
@@ -256,21 +322,18 @@ To use the API client:
 ### Development Environment
 - **Purpose**: Unreliable playground for backend engineers
 - **Features**: Debug routes, experimental features, mock data, detailed startup logs
-- **Rate Limit**: 1000 requests/15min
 - **Log Level**: Debug
 - **Start**: `yarn dev`
 
 ### Staging Environment
 - **Purpose**: Stable pre-production environment
 - **Features**: Production-like but with testing capabilities
-- **Rate Limit**: 500 requests/15min
 - **Log Level**: Info
 - **Start**: `yarn staging`
 
 ### Production Environment
 - **Purpose**: Customer-facing stable environment
 - **Features**: Optimized for performance and security, minimal startup logs
-- **Rate Limit**: 100 requests/15min
 - **Log Level**: Warn
 - **Start**: `yarn start`
 
@@ -302,8 +365,7 @@ curl -X POST http://localhost:3000/users \
 ```json
 {
   "error": "Bad Request",
-  "message": "Content-Type must be application/json",
-  "code": "INVALID_CONTENT_TYPE"
+  "message": "Invalid request format"
 }
 ```
 
@@ -374,18 +436,17 @@ The API returns consistent JSON error responses for all error scenarios:
 
 ### **Common Error Codes**
 - **400** - Bad Request (missing/invalid data)
-  - Invalid content type: `{"error":"Bad Request","message":"Content-Type must be application/json","code":"INVALID_CONTENT_TYPE"}`
-  - Missing required fields: `{"error":"Bad Request","message":"Missing required field: email"}`
+  - Invalid content type: `{"error":"Bad Request","message":"Invalid request format"}`
+  - Missing required fields: `{"error":"Bad Request","message":"Invalid request data"}`
 - **401** - Unauthorized (missing/invalid authentication)
-  - Missing API secret: `{"error":"Unauthorized","message":"Missing required header: X-API-Secret","code":"MISSING_SECRET_HEADER"}`
-  - Invalid API secret: `{"error":"Unauthorized","message":"Invalid API secret","code":"INVALID_SECRET"}`
-  - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Invalid or missing authentication token"}`
+  - Missing API secret: `{"error":"Unauthorized","message":"Authentication required"}`
+  - Invalid API secret: `{"error":"Unauthorized","message":"Authentication required"}`
+  - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Authentication required"}`
 - **404** - Not Found (resource doesn't exist)
 - **409** - Conflict (duplicate data)
-- **429** - Too Many Requests (rate limit exceeded)
 - **500** - Internal Server Error
-  - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","code":"INTERNAL_SERVER_ERROR"}`
-  - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","code":"INTERNAL_SERVER_ERROR","details":"Specific error message","stack":"Full error stack trace"}`
+  - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later."}`
+  - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","details":"Specific error message","stack":"Full error stack trace"}`
 
 ### **Global Error Handler**
 The API includes a comprehensive error handling system:

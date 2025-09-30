@@ -23,7 +23,6 @@ describe('Environment-Specific Tests', () => {
       expect(config.features.enableDebugRoutes).toBe(true);
       expect(config.features.enableMockData).toBe(true);
       expect(config.features.enableExperimentalFeatures).toBe(true);
-      expect(config.rateLimit.max).toBe(1000);
     });
 
     it('should have debug endpoint available', async () => {
@@ -40,6 +39,8 @@ describe('Environment-Specific Tests', () => {
     beforeAll(() => {
       jest.resetModules();
       process.env['NODE_ENV'] = 'staging';
+      process.env['API_SECRET'] = 'staging-secret-key-12345';
+      process.env['JWT_SECRET'] = 'staging-jwt-secret-key-12345';
       app = require('../src/app').default;
       config = require('../src/config').default;
     });
@@ -49,7 +50,6 @@ describe('Environment-Specific Tests', () => {
       expect(config.features.enableDebugRoutes).toBe(false);
       expect(config.features.enableMockData).toBe(false);
       expect(config.features.enableExperimentalFeatures).toBe(false);
-      expect(config.rateLimit.max).toBe(500);
     });
 
     it('should not have debug endpoint available', async () => {
@@ -63,6 +63,8 @@ describe('Environment-Specific Tests', () => {
     beforeAll(() => {
       jest.resetModules();
       process.env['NODE_ENV'] = 'production';
+      process.env['API_SECRET'] = 'production-secret-key-12345';
+      process.env['JWT_SECRET'] = 'production-jwt-secret-key-12345';
       app = require('../src/app').default;
       config = require('../src/config').default;
     });
@@ -72,7 +74,6 @@ describe('Environment-Specific Tests', () => {
       expect(config.features.enableDebugRoutes).toBe(false);
       expect(config.features.enableMockData).toBe(false);
       expect(config.features.enableExperimentalFeatures).toBe(false);
-      expect(config.rateLimit.max).toBe(100);
     });
 
     it('should not have debug endpoint available', async () => {
@@ -92,7 +93,6 @@ describe('Environment-Specific Tests', () => {
 
     it('should have test configuration', () => {
       expect(config.env).toBe('test');
-      expect(config.rateLimit.max).toBe(1000); // Same as development
     });
 
     it('should have debug endpoint available in test', async () => {

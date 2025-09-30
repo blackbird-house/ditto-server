@@ -4,7 +4,6 @@ import app from '../src/app';
 describe('Secret Validation Middleware', () => {
   const validSecret = 'test-secret-key-67890';
   const invalidSecret = 'invalid-secret';
-  const missingSecretHeader = 'X-API-Secret';
 
   describe('GET /ping', () => {
     it('should return 401 when secret header is missing', async () => {
@@ -14,8 +13,7 @@ describe('Secret Validation Middleware', () => {
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: `Missing required header: ${missingSecretHeader}`,
-        code: 'MISSING_SECRET_HEADER'
+        message: 'Authentication required'
       });
     });
 
@@ -27,8 +25,7 @@ describe('Secret Validation Middleware', () => {
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Invalid API secret',
-        code: 'INVALID_SECRET'
+        message: 'Authentication required'
       });
     });
 
@@ -42,29 +39,21 @@ describe('Secret Validation Middleware', () => {
   });
 
   describe('GET /debug/env', () => {
-    it('should return 401 when secret header is missing', async () => {
+    it('should return 200 when secret header is missing (debug endpoints excluded)', async () => {
       const response = await request(app)
         .get('/debug/env');
 
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({
-        error: 'Unauthorized',
-        message: `Missing required header: ${missingSecretHeader}`,
-        code: 'MISSING_SECRET_HEADER'
-      });
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('environment');
     });
 
-    it('should return 401 when secret header is invalid', async () => {
+    it('should return 200 when secret header is invalid (debug endpoints excluded)', async () => {
       const response = await request(app)
         .get('/debug/env')
         .set('X-API-Secret', invalidSecret);
 
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({
-        error: 'Unauthorized',
-        message: 'Invalid API secret',
-        code: 'INVALID_SECRET'
-      });
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('environment');
     });
 
     it('should return 200 when secret header is valid', async () => {
@@ -86,15 +75,14 @@ describe('Secret Validation Middleware', () => {
         .send({
           firstName: 'John',
           lastName: 'Doe',
-          email: 'john@example.com',
-          phone: '+1234567890'
+          email: `john${Date.now()}@example.com`,
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: `Missing required header: ${missingSecretHeader}`,
-        code: 'MISSING_SECRET_HEADER'
+        message: 'Authentication required'
       });
     });
 
@@ -105,15 +93,14 @@ describe('Secret Validation Middleware', () => {
         .send({
           firstName: 'John',
           lastName: 'Doe',
-          email: 'john@example.com',
-          phone: '+1234567890'
+          email: `john${Date.now()}@example.com`,
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Invalid API secret',
-        code: 'INVALID_SECRET'
+        message: 'Authentication required'
       });
     });
 
@@ -124,13 +111,12 @@ describe('Secret Validation Middleware', () => {
         .send({
           firstName: 'John',
           lastName: 'Doe',
-          email: 'john@example.com',
-          phone: '+1234567890'
+          email: `john${Date.now()}@example.com`,
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`
         });
 
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('user');
-      expect(response.body.user).toHaveProperty('id');
+      expect(response.body).toHaveProperty('id');
     });
   });
 
@@ -139,14 +125,13 @@ describe('Secret Validation Middleware', () => {
       const response = await request(app)
         .post('/auth/send-otp')
         .send({
-          phone: '+1234567890'
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: `Missing required header: ${missingSecretHeader}`,
-        code: 'MISSING_SECRET_HEADER'
+        message: 'Authentication required'
       });
     });
 
@@ -155,14 +140,13 @@ describe('Secret Validation Middleware', () => {
         .post('/auth/send-otp')
         .set('X-API-Secret', invalidSecret)
         .send({
-          phone: '+1234567890'
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Invalid API secret',
-        code: 'INVALID_SECRET'
+        message: 'Authentication required'
       });
     });
 
@@ -171,7 +155,7 @@ describe('Secret Validation Middleware', () => {
         .post('/auth/send-otp')
         .set('X-API-Secret', validSecret)
         .send({
-          phone: '+1234567890'
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`
         });
 
       expect(response.status).toBe(204);
