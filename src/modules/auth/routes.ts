@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { sendOtp, verifyOtp } from './controller';
+import { sendOtp, verifyOtp, refreshToken } from './controller';
 
 const router = Router();
 
@@ -8,5 +8,8 @@ router.post('/send-otp', sendOtp);
 
 // POST /auth/verify-otp - Verify OTP and get authentication token
 router.post('/verify-otp', verifyOtp);
+
+// POST /auth/refresh-token - Refresh authentication token using refresh token
+router.post('/refresh-token', refreshToken);
 
 export default router;

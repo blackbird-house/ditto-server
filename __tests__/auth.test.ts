@@ -114,6 +114,11 @@ describe('Authentication Module', () => {
         .expect(200);
 
       const token = verifyOtpResponse.body.token;
+      const refreshToken = verifyOtpResponse.body.refreshToken;
+
+      // Verify both tokens are present
+      expect(token).toBeDefined();
+      expect(refreshToken).toBeDefined();
 
       // Step 4: Get user profile using token
       const getMeResponse = await request(app)
@@ -223,6 +228,94 @@ describe('Authentication Module', () => {
 
       expect(verifyOtpResponse.body).toHaveProperty('error', 'Not found');
       expect(verifyOtpResponse.body).toHaveProperty('message', 'User not found');
+    });
+  });
+
+  describe('Refresh Token', () => {
+    it('should refresh token successfully with valid refresh token', async () => {
+      const testPhone = `+1234567${Math.floor(Math.random() * 1000)}`;
+      const expectedOtp = testPhone.slice(-6);
+
+      // Step 1: Create a user first
+      await request(app)
+        .post('/users')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({
+          firstName: 'Refresh',
+          lastName: 'User',
+          email: `refresh.user${Date.now()}@example.com`,
+          phone: testPhone
+        })
+        .expect(201);
+
+      // Step 2: Send OTP
+      await request(app)
+        .post('/auth/send-otp')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({ phone: testPhone })
+        .expect(204);
+
+      // Step 3: Verify OTP to get tokens
+      const verifyOtpResponse = await request(app)
+        .post('/auth/verify-otp')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({ phone: testPhone, otp: expectedOtp })
+        .expect(200);
+
+      const originalToken = verifyOtpResponse.body.token;
+      const refreshToken = verifyOtpResponse.body.refreshToken;
+
+      // Step 4: Refresh the token
+      const refreshResponse = await request(app)
+        .post('/auth/refresh-token')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({ refreshToken })
+        .expect(200);
+
+      const newToken = refreshResponse.body.token;
+      const newRefreshToken = refreshResponse.body.refreshToken;
+
+      // Verify new tokens are different from original
+      expect(newToken).toBeDefined();
+      expect(newRefreshToken).toBeDefined();
+      expect(newToken).not.toBe(originalToken);
+      expect(newRefreshToken).not.toBe(refreshToken);
+
+      // Step 5: Use new token to access protected endpoint
+      const getMeResponse = await request(app)
+        .get('/users/me')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .set('Authorization', `Bearer ${newToken}`)
+        .expect(200);
+
+      expect(getMeResponse.body).toHaveProperty('id');
+      expect(getMeResponse.body).toHaveProperty('phone', testPhone);
+    });
+
+    it('should return 401 for invalid refresh token', async () => {
+      await request(app)
+        .post('/auth/refresh-token')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({ refreshToken: 'invalid-refresh-token' })
+        .expect(401);
+    });
+
+    it('should return 400 for missing refresh token', async () => {
+      await request(app)
+        .post('/auth/refresh-token')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({})
+        .expect(400);
+    });
+
+    it('should return 401 for expired refresh token', async () => {
+      // Create an expired refresh token (this would be done by manipulating the JWT)
+      // For testing purposes, we'll use an obviously invalid token
+      await request(app)
+        .post('/auth/refresh-token')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send({ refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0IiwicGhvbmUiOiIrMTIzNDU2Nzg5MCIsInR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxLCJleHAiOjF9.invalid' })
+        .expect(401);
     });
   });
 });

@@ -1,0 +1,134 @@
+paths:
+  /debug/env:
+    get:
+      summary: Environment debug endpoint
+      description: Returns current environment configuration and feature flags (development only)
+      operationId: debugEnv
+      security: []
+      responses:
+        '200':
+          description: Environment configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  environment:
+                    type: string
+                    example: "development"
+                  port:
+                    type: integer
+                    example: 3000
+                  features:
+                    type: object
+                    properties:
+                      enableDebugRoutes:
+                        type: boolean
+                        example: true
+                      enableMockData:
+                        type: boolean
+                        example: true
+                      enableExperimentalFeatures:
+                        type: boolean
+                        example: true
+        '401':
+          description: Unauthorized - Missing or invalid API secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '404':
+          description: Not Found - Debug endpoint not available in this environment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Debug endpoint not available in production"
+      tags:
+        - Debug
+  /debug/last-otp:
+    get:
+      summary: Get last OTP for testing
+      description: Returns the last generated OTP for testing purposes (development only)
+      operationId: debugLastOtp
+      security: []
+      responses:
+        '200':
+          description: Last OTP information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  phone:
+                    type: string
+                    example: "+1234567890"
+                  otp:
+                    type: string
+                    example: "567890"
+                  otpId:
+                    type: string
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  message:
+                    type: string
+                    example: "No OTP sent yet"
+        '404':
+          description: Not Found - Debug endpoint not available in this environment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Debug endpoint not available in production"
+      tags:
+        - Debug
+  /debug/error:
+    get:
+      summary: Test error handling endpoint
+      description: Triggers an error to test the global error handler (development only)
+      operationId: debugError
+      security: []
+      responses:
+        '500':
+          description: Internal Server Error - Test error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred. Please try again later."
+                  details:
+                    type: string
+                    example: "Test error for error handling demonstration"
+                  stack:
+                    type: string
+                    example: "Error: Test error for error handling demonstration\n    at ..."
+        '404':
+          description: Not Found - Debug endpoint not available in this environment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Debug endpoint not available in production"
+      tags:
+        - Debug

@@ -15,7 +15,9 @@ servers:
     description: Local development server
 security:
   - apiSecret: []
+
 paths:
+  # Health endpoints
   /ping:
     get:
       summary: Health check endpoint
@@ -66,6 +68,8 @@ paths:
                     example: "An unexpected error occurred. Please try again later."
       tags:
         - Health
+
+  # Debug endpoints
   /debug/env:
     get:
       summary: Environment debug endpoint
@@ -123,6 +127,7 @@ paths:
                     example: "Debug endpoint not available in production"
       tags:
         - Debug
+
   /debug/last-otp:
     get:
       summary: Get last OTP for testing
@@ -161,6 +166,7 @@ paths:
                     example: "Debug endpoint not available in production"
       tags:
         - Debug
+
   /debug/error:
     get:
       summary: Test error handling endpoint
@@ -199,6 +205,8 @@ paths:
                     example: "Debug endpoint not available in production"
       tags:
         - Debug
+
+  # User management endpoints
   /users:
     post:
       summary: Create a new user
@@ -292,6 +300,7 @@ paths:
                     example: "User with this email already exists"
       tags:
         - Users
+
   /users/{id}:
     get:
       summary: Get user by ID
@@ -351,6 +360,7 @@ paths:
                     example: "User not found"
       tags:
         - Users
+
   /users/me:
     get:
       summary: Get authenticated user profile
@@ -430,6 +440,7 @@ paths:
                     example: "Failed to get user profile"
       tags:
         - Users
+
     put:
       summary: Update authenticated user profile
       description: Updates the profile information of the currently authenticated user
@@ -551,9 +562,11 @@ paths:
                     example: "Internal server error"
                   message:
                     type: string
-                    example: "Failed to update user"
+                    example: "Failed to update user profile"
       tags:
         - Users
+
+  # Authentication endpoints
   /auth/send-otp:
     post:
       summary: Send OTP to phone number
@@ -605,6 +618,7 @@ paths:
                     example: "Failed to send OTP"
       tags:
         - Authentication
+
   /auth/verify-otp:
     post:
       summary: Verify OTP and get authentication token
@@ -640,7 +654,11 @@ paths:
                   token:
                     type: string
                     example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9"
-                    description: JWT authentication token (valid for 5 minutes)
+                    description: JWT authentication token (valid for 3 minutes)
+                  refreshToken:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+                    description: JWT refresh token (valid for 30 days)
         '400':
           description: Bad Request - Invalid or missing data
           content:
@@ -696,6 +714,96 @@ paths:
       tags:
         - Authentication
 
+  /auth/refresh-token:
+    post:
+      summary: Refresh authentication token
+      description: Refreshes the authentication token using a valid refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+                  description: JWT refresh token (valid for 30 days)
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9"
+                    description: New JWT authentication token (valid for 3 minutes)
+                  refreshToken:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+                    description: New JWT refresh token (valid for 30 days)
+        '400':
+          description: Bad Request - Missing refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad request"
+                  message:
+                    type: string
+                    example: "Refresh token is required"
+        '401':
+          description: Unauthorized - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid or expired refresh token. Please login again."
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                  message:
+                    type: string
+                    example: "Failed to refresh token"
+      tags:
+        - Authentication
+
+  # Chat endpoints
   /chats:
     post:
       summary: Create a new chat
@@ -1272,6 +1380,7 @@ paths:
                     example: "Failed to retrieve messages"
       tags:
         - Chat
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1283,6 +1392,7 @@ components:
       in: header
       name: X-API-Secret
       description: API secret key required for all requests
+
 tags:
   - name: Health
     description: Health check and monitoring endpoints

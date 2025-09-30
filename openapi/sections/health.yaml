@@ -1,0 +1,51 @@
+paths:
+  /ping:
+    get:
+      summary: Health check endpoint
+      description: Returns a 204 No Content status to indicate the server is running and healthy
+      operationId: ping
+      responses:
+        '204':
+          description: No Content - Server is healthy and responsive
+          content: {}
+        '400':
+          description: Bad Request - Invalid content type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Invalid request format"
+        '401':
+          description: Unauthorized - Missing or invalid API secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication required"
+        '500':
+          description: Internal Server Error - Unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred. Please try again later."
+      tags:
+        - Health

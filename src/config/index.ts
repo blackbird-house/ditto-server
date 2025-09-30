@@ -49,7 +49,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       secret: process.env['JWT_SECRET'] || (() => {
         throw new Error('JWT_SECRET environment variable is required');
       })(),
-      expiresIn: '3m'
+      expiresIn: '3m',
+      refreshExpiresIn: '30d'
     }
   },
 
@@ -80,7 +81,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       secret: process.env['JWT_SECRET'] || (() => {
         throw new Error('JWT_SECRET environment variable is required');
       })(),
-      expiresIn: '3m'
+      expiresIn: '3m',
+      refreshExpiresIn: '30d'
     }
   },
   
@@ -111,7 +113,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       secret: process.env['JWT_SECRET'] || (() => {
         throw new Error('JWT_SECRET environment variable is required');
       })(),
-      expiresIn: '3m'
+      expiresIn: '3m',
+      refreshExpiresIn: '30d'
     }
   },
   
@@ -142,7 +145,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       secret: process.env['JWT_SECRET'] || (() => {
         throw new Error('JWT_SECRET environment variable is required');
       })(),
-      expiresIn: '3m'
+      expiresIn: '3m',
+      refreshExpiresIn: '30d'
     }
   }
 };

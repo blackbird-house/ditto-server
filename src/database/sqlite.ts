@@ -79,7 +79,9 @@ export class SQLiteDatabase {
       `);
 
       this.initialized = true;
-      console.log('✅ Database tables initialized successfully');
+      if (process.env['NODE_ENV'] !== 'test') {
+        console.log('✅ Database tables initialized successfully');
+      }
     } catch (error) {
       console.error('❌ Error initializing database tables:', error);
       throw error;

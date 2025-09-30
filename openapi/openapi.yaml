@@ -1,0 +1,79 @@
+openapi: 3.0.3
+info:
+  title: Ditto Server API
+  description: |
+    A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript.
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
+  version: 1.0.0
+  contact:
+    name: Ditto Server
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+security:
+  - apiSecret: []
+
+# Import all endpoint sections
+paths:
+  # Health endpoints
+  /ping:
+    $ref: './sections/health.yaml#/paths/~1ping'
+  
+  # Debug endpoints
+  /debug/env:
+    $ref: './sections/debug.yaml#/paths/~1debug~1env'
+  /debug/last-otp:
+    $ref: './sections/debug.yaml#/paths/~1debug~1last-otp'
+  /debug/error:
+    $ref: './sections/debug.yaml#/paths/~1debug~1error'
+  
+  # User management endpoints
+  /users:
+    $ref: './sections/users.yaml#/paths/~1users'
+  /users/{id}:
+    $ref: './sections/users.yaml#/paths/~1users~1{id}'
+  /users/me:
+    $ref: './sections/users.yaml#/paths/~1users~1me'
+  
+  # Authentication endpoints
+  /auth/send-otp:
+    $ref: './sections/auth.yaml#/paths/~1auth~1send-otp'
+  /auth/verify-otp:
+    $ref: './sections/auth.yaml#/paths/~1auth~1verify-otp'
+  /auth/refresh-token:
+    $ref: './sections/auth.yaml#/paths/~1auth~1refresh-token'
+  
+  # Chat endpoints
+  /chats:
+    $ref: './sections/chat.yaml#/paths/~1chats'
+  /chats/{chatId}:
+    $ref: './sections/chat.yaml#/paths/~1chats~1{chatId}'
+  /chats/{chatId}/messages:
+    $ref: './sections/chat.yaml#/paths/~1chats~1{chatId}~1messages'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
+
+tags:
+  - name: Health
+    description: Health check and monitoring endpoints
+  - name: Debug
+    description: Debug and development endpoints (development environment only)
+  - name: Users
+    description: User management endpoints
+  - name: Authentication
+    description: Phone-based OTP authentication endpoints
+  - name: Chat
+    description: 1-to-1 chat messaging endpoints

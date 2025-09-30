@@ -71,3 +71,38 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({
+        error: 'Bad request',
+        message: 'Refresh token is required'
+      });
+      return;
+    }
+
+    const result = await authService.refreshToken(refreshToken);
+    res.status(200).json(result);
+  } catch (error: any) {
+    if (error.message === 'Invalid or expired refresh token') {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or expired refresh token. Please login again.'
+      });
+    } else if (error.message === 'User not found') {
+      res.status(404).json({
+        error: 'Not found',
+        message: 'User not found'
+      });
+    } else {
+      console.error('Error refreshing token:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to refresh token'
+      });
+    }
+  }
+};
+

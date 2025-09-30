@@ -13,6 +13,7 @@ export interface VerifyOtpRequest {
 
 export interface VerifyOtpResponse {
   token: string;
+  refreshToken: string;
 }
 
 export interface OtpSession {
@@ -31,6 +32,15 @@ export interface AuthToken {
   exp: number;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  token: string;
+  refreshToken: string;
+}
+
 export interface OtpService {
   sendOtp(phone: string): Promise<{ otpId: string; otp: string }>;
   verifyOtp(phone: string, otp: string, otpId: string): Promise<boolean>;
@@ -39,7 +49,10 @@ export interface OtpService {
 export interface AuthService {
   sendOtp(phone: string): Promise<void>;
   verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse>;
+  refreshToken(refreshToken: string): Promise<RefreshTokenResponse>;
   generateToken(userId: string, phone: string): string;
+  generateRefreshToken(userId: string, phone: string): string;
   verifyToken(token: string): AuthToken | null;
+  verifyRefreshToken(refreshToken: string): AuthToken | null;
   getMe(userId: string): Promise<{ id: string; phone: string; firstName?: string; lastName?: string; email?: string; createdAt: string; updatedAt: string } | null>;
 }
