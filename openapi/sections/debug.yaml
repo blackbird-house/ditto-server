@@ -1,3 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Ditto Server API - Debug
+  description: |
+    Debug and development endpoints for the Ditto Server API (development environment only).
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
+  version: 1.0.0
+  contact:
+    name: Ditto Server
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+security:
+  - apiSecret: []
+
 paths:
   /debug/env:
     get:
@@ -132,3 +150,19 @@ paths:
                     example: "Debug endpoint not available in production"
       tags:
         - Debug
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
+
+tags:
+  - name: Debug
+    description: Debug and development endpoints (development environment only)

@@ -1,3 +1,21 @@
+openapi: 3.0.3
+info:
+  title: Ditto Server API - Chat
+  description: |
+    Chat messaging endpoints for the Ditto Server API.
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
+  version: 1.0.0
+  contact:
+    name: Ditto Server
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+security:
+  - apiSecret: []
+
 paths:
   /chats:
     post:
@@ -575,3 +593,19 @@ paths:
                     example: "Failed to retrieve messages"
       tags:
         - Chat
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
+
+tags:
+  - name: Chat
+    description: 1-to-1 chat messaging endpoints
