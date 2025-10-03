@@ -72,3 +72,7 @@ data/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Production secrets (never commit)
+secrets.production.txt
+*.secrets.txt
