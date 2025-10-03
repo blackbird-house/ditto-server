@@ -24,8 +24,10 @@ export class MockOtpService implements OtpService {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     this.otpStore.set(otpId, { otp, expiresAt });
 
-    // In development, log the OTP to console
-    console.log(`🔐 [MOCK OTP] Phone: ${phone} | OTP: ${otp} | Expires: ${expiresAt.toISOString()}`);
+    // In development, log the OTP to console (not in tests)
+    if (process.env['NODE_ENV'] !== 'test') {
+      console.log(`🔐 [MOCK OTP] Phone: ${phone} | OTP: ${otp} | Expires: ${expiresAt.toISOString()}`);
+    }
 
     // For testing purposes, also store the OTP in a global variable
     (global as any).lastOtp = { phone, otp, otpId };
@@ -37,24 +39,32 @@ export class MockOtpService implements OtpService {
     const stored = this.otpStore.get(otpId);
     
     if (!stored) {
-      console.log(`❌ [MOCK OTP] No OTP found for ID: ${otpId}`);
+      if (process.env['NODE_ENV'] !== 'test') {
+        console.log(`❌ [MOCK OTP] No OTP found for ID: ${otpId}`);
+      }
       return false;
     }
 
     if (new Date() > stored.expiresAt) {
-      console.log(`⏰ [MOCK OTP] OTP expired for ID: ${otpId}`);
+      if (process.env['NODE_ENV'] !== 'test') {
+        console.log(`⏰ [MOCK OTP] OTP expired for ID: ${otpId}`);
+      }
       this.otpStore.delete(otpId);
       return false;
     }
 
     if (stored.otp !== otp) {
-      console.log(`❌ [MOCK OTP] Invalid OTP for ID: ${otpId} (expected: ${stored.otp}, received: ${otp})`);
+      if (process.env['NODE_ENV'] !== 'test') {
+        console.log(`❌ [MOCK OTP] Invalid OTP for ID: ${otpId} (expected: ${stored.otp}, received: ${otp})`);
+      }
       return false;
     }
 
     // OTP is valid, remove it from store
     this.otpStore.delete(otpId);
-    console.log(`✅ [MOCK OTP] OTP verified successfully for phone: ${phone}`);
+    if (process.env['NODE_ENV'] !== 'test') {
+      console.log(`✅ [MOCK OTP] OTP verified successfully for phone: ${phone}`);
+    }
     return true;
   }
 

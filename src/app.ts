@@ -14,7 +14,20 @@ import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, input
 const app: Application = express();
 
 // Load OpenAPI specification
-const swaggerDocument = YAML.load(path.join(__dirname, '../openapi.yaml'));
+const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/openapi-consolidated.yaml'));
+
+// API Documentation (Swagger UI) - MUST be before middleware to avoid authentication
+if (config.features.enableDebugRoutes) {
+  // Serve OpenAPI spec as JSON
+  app.get('/api-docs', (_req, res) => {
+    res.json(swaggerDocument);
+  });
+  
+  app.use('/docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Ditto Server API Documentation'
+  }) as any);
+}
 
 // URL normalization middleware (handles multiple slashes from API clients) - MUST be first
 app.use(urlNormalization);
@@ -52,19 +65,14 @@ app.use(inputValidationMiddleware);
 app.use(express.json());
 app.use(cors(config.cors));
 
-// Logging middleware
-app.use((req, _res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
-  next();
-});
-
-// API Documentation (Swagger UI) - only in development and test
-if (config.features.enableDebugRoutes) {
-  app.use('/docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Ditto Server API Documentation'
-  }) as any);
+// Logging middleware (only in non-test environments)
+if (config.env !== 'test') {
+  app.use((req, _res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
+    next();
+  });
 }
+
 
 // Routes
 app.use('/ping', pingRoutes);

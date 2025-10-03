@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: Ditto Server API
+  description: |
+    A ready-to-use easy-to-clone REST API server built with Node.js, Express, and TypeScript.
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
+  version: 1.0.0
+  contact:
+    name: Ditto Server
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+security:
+  - apiSecret: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
+
+tags:
+  - name: Health
+    description: Health check and monitoring endpoints
+  - name: Debug
+    description: Debug and development endpoints (development environment only)
+  - name: Users
+    description: User management endpoints
+  - name: Authentication
+    description: Phone-based OTP authentication endpoints
+  - name: Chat
+    description: 1-to-1 chat messaging endpoints

@@ -1,4 +1,4 @@
-import { AuthService, VerifyOtpResponse, AuthToken } from '../types';
+import { AuthService, VerifyOtpResponse, AuthToken, RefreshTokenResponse } from '../types';
 import { MockOtpService } from './mockOtpService';
 import { userService } from '../../users/service';
 import { databaseService } from '../../../database';
@@ -104,19 +104,45 @@ export class AuthServiceImpl implements AuthService {
         throw new Error('User not found');
       }
 
-      // Generate JWT token
+      // Generate JWT token and refresh token
       const token = this.generateToken(user.id, phone);
+      const refreshToken = this.generateRefreshToken(user.id, phone);
 
       // Clean up OTP session and reset lockout attempts
       this.otpSessions.delete(sessionKey);
       this.lockoutAttempts.delete(lockoutKey);
 
       return {
-        token
+        token,
+        refreshToken
       };
     } catch (error) {
       throw error;
     }
+  }
+
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    // Verify the refresh token
+    const payload = this.verifyRefreshToken(refreshToken);
+    
+    if (!payload) {
+      throw new Error('Invalid or expired refresh token');
+    }
+
+    // Check if the user still exists
+    const user = await this.findUserByPhone(payload.phone);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Generate new tokens
+    const newToken = this.generateToken(user.id, payload.phone);
+    const newRefreshToken = this.generateRefreshToken(user.id, payload.phone);
+
+    return {
+      token: newToken,
+      refreshToken: newRefreshToken
+    };
   }
 
   generateToken(userId: string, phone: string): string {
@@ -124,12 +150,29 @@ export class AuthServiceImpl implements AuthService {
     const payload = {
       userId,
       phone,
-      iat: Math.floor(Date.now() / 1000)
+      iat: Math.floor(Date.now() / 1000),
+      jti: Math.random().toString(36).substring(2, 15) // Unique token identifier
     };
 
     // Use proper JWT with HMAC signing and configurable expiration
     return jwt.sign(payload, config.jwt.secret, {
       expiresIn: config.jwt.expiresIn,
+      algorithm: 'HS256'
+    } as jwt.SignOptions);
+  }
+
+  generateRefreshToken(userId: string, phone: string): string {
+    // Generate refresh token with longer expiration (30 days)
+    const payload = {
+      userId,
+      phone,
+      type: 'refresh',
+      iat: Math.floor(Date.now() / 1000),
+      jti: Math.random().toString(36).substring(2, 15) // Unique token identifier
+    };
+
+    return jwt.sign(payload, config.jwt.secret, {
+      expiresIn: config.jwt.refreshExpiresIn,
       algorithm: 'HS256'
     } as jwt.SignOptions);
   }
@@ -140,6 +183,30 @@ export class AuthServiceImpl implements AuthService {
       const payload = jwt.verify(token, config.jwt.secret, {
         algorithms: ['HS256']
       } as jwt.VerifyOptions) as any;
+
+      return {
+        userId: payload.userId,
+        phone: payload.phone,
+        iat: payload.iat,
+        exp: payload.exp
+      };
+    } catch (error) {
+      // JWT verification failed (expired, invalid signature, etc.)
+      return null;
+    }
+  }
+
+  verifyRefreshToken(refreshToken: string): AuthToken | null {
+    try {
+      // Verify refresh token with proper signature validation
+      const payload = jwt.verify(refreshToken, config.jwt.secret, {
+        algorithms: ['HS256']
+      } as jwt.VerifyOptions) as any;
+
+      // Ensure this is a refresh token
+      if (payload.type !== 'refresh') {
+        return null;
+      }
 
       return {
         userId: payload.userId,

@@ -218,6 +218,7 @@ See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
 ### Authentication
 - **POST** `/auth/send-otp` - Send OTP to phone number (returns 204)
 - **POST** `/auth/verify-otp` - Verify OTP and get authentication token
+- **POST** `/auth/refresh-token` - Refresh authentication token using refresh token
 
 ### Chat (1-to-1 Messaging)
 - **POST** `/chats` - Create a new chat with another user (requires authentication)
@@ -270,6 +271,38 @@ curl -X POST http://localhost:3000/chats/CHAT_ID/messages \
 curl -X GET http://localhost:3000/chats \
   -H "X-API-Secret: dev-secret-key-12345" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### **Token Refresh Example**
+```bash
+# 1. Login and get tokens
+curl -X POST http://localhost:3000/auth/verify-otp \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+1234567890", "otp": "567890"}'
+
+# Response includes both token and refreshToken:
+# {
+#   "token": "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9",
+#   "refreshToken": "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+# }
+
+# 2. When your token expires (after 3 minutes), refresh it
+curl -X POST http://localhost:3000/auth/refresh-token \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken": "YOUR_REFRESH_TOKEN"}'
+
+# Response includes new tokens:
+# {
+#   "token": "NEW_SESSION_TOKEN",
+#   "refreshToken": "NEW_REFRESH_TOKEN"
+# }
+
+# 3. Use the new token for API calls
+curl -X GET http://localhost:3000/users/me \
+  -H "X-API-Secret: dev-secret-key-12345" \
+  -H "Authorization: Bearer NEW_SESSION_TOKEN"
 ```
 
 ## 🧪 API Testing
@@ -406,8 +439,9 @@ For user-specific operations, the API uses phone-based OTP authentication:
 #### **Authentication Flow**
 1. **Register**: `POST /users` (create user account)
 2. **Request OTP**: `POST /auth/send-otp` (send OTP to phone)
-3. **Verify OTP**: `POST /auth/verify-otp` (get authentication token)
+3. **Verify OTP**: `POST /auth/verify-otp` (get authentication token and refresh token)
 4. **Use Token**: Include `Authorization: Bearer <token>` header for protected endpoints
+5. **Refresh Token**: `POST /auth/refresh-token` (get new tokens when current token expires)
 
 #### **Protected Endpoints**
 - `GET /users/me` - Get authenticated user profile
@@ -416,8 +450,15 @@ For user-specific operations, the API uses phone-based OTP authentication:
 
 #### **Token Details**
 - **Format**: JWT (base64 encoded)
-- **Expiration**: 5 minutes
+- **Session Token Expiration**: 3 minutes
+- **Refresh Token Expiration**: 30 days
 - **Header**: `Authorization: Bearer <token>`
+
+#### **Token Refresh Strategy**
+- **Session Token**: Short-lived (3 minutes) for security
+- **Refresh Token**: Long-lived (30 days) for convenience
+- **Refresh Logic**: If refresh token is valid and not older than 30 days, user can get new tokens
+- **Re-authentication**: If refresh token is expired or invalid, user must login again with OTP
 
 #### **Development OTP**
 In development, the OTP is the last 6 digits of the phone number (e.g., phone `+1234567890` → OTP `567890`)

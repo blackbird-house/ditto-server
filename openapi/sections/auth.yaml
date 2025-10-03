@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Ditto Server API - Authentication
+  description: |
+    Authentication endpoints for the Ditto Server API.
+    
+    **Important**: This API only accepts and returns JSON format. All requests with a body must have `Content-Type: application/json` header.
+  version: 1.0.0
+  contact:
+    name: Ditto Server
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+security:
+  - apiSecret: []
+
+paths:
+  /auth/send-otp:
+    post:
+      summary: Send OTP to phone number
+      description: Sends a one-time password (OTP) to the specified phone number for authentication
+      operationId: sendOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+              properties:
+                phone:
+                  type: string
+                  format: phone
+                  example: "+1234567890"
+                  description: Phone number in international format
+      responses:
+        '204':
+          description: OTP sent successfully
+          content: {}
+        '400':
+          description: Bad Request - Invalid phone number format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid phone number"
+                  message:
+                    type: string
+                    example: "Please provide a valid phone number in international format (e.g., +1234567890)"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                  message:
+                    type: string
+                    example: "Failed to send OTP"
+      tags:
+        - Authentication
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP and get authentication token
+      description: Verifies the OTP code and returns an authentication token if valid
+      operationId: verifyOtp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - otp
+              properties:
+                phone:
+                  type: string
+                  format: phone
+                  example: "+1234567890"
+                  description: Phone number in international format
+                otp:
+                  type: string
+                  example: "567890"
+                  description: 6-digit OTP code
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9"
+                    description: JWT authentication token (valid for 3 minutes)
+                  refreshToken:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+                    description: JWT refresh token (valid for 30 days)
+        '400':
+          description: Bad Request - Invalid or missing data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad request"
+                  message:
+                    type: string
+                    example: "Phone number and OTP are required"
+        '401':
+          description: Unauthorized - Invalid or expired OTP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid OTP"
+                  message:
+                    type: string
+                    example: "Invalid or expired OTP"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                  message:
+                    type: string
+                    example: "Failed to verify OTP"
+      tags:
+        - Authentication
+  /auth/refresh-token:
+    post:
+      summary: Refresh authentication token
+      description: Refreshes the authentication token using a valid refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+                  description: JWT refresh token (valid for 30 days)
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9"
+                    description: New JWT authentication token (valid for 3 minutes)
+                  refreshToken:
+                    type: string
+                    example: "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
+                    description: New JWT refresh token (valid for 30 days)
+        '400':
+          description: Bad Request - Missing refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad request"
+                  message:
+                    type: string
+                    example: "Refresh token is required"
+        '401':
+          description: Unauthorized - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid or expired refresh token. Please login again."
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not found"
+                  message:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                  message:
+                    type: string
+                    example: "Failed to refresh token"
+      tags:
+        - Authentication
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiSecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
+      description: API secret key required for all requests
+
+tags:
+  - name: Authentication
+    description: Phone-based OTP authentication endpoints

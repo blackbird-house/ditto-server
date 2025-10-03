@@ -16,5 +16,8 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest'
   },
-  roots: ['<rootDir>/src', '<rootDir>/__tests__']
+  roots: ['<rootDir>/src', '<rootDir>/__tests__'],
+  // Suppress console logs during tests
+  silent: true,
+  verbose: false
 };

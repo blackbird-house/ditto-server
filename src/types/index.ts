@@ -22,6 +22,7 @@ export interface EnvironmentConfig {
   jwt: {
     secret: string;
     expiresIn: string;
+    refreshExpiresIn: string;
   };
 }
 
