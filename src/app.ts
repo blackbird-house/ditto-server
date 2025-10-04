@@ -9,6 +9,7 @@ import userRoutes from './modules/users/routes';
 import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
 import config from './config';
+import { databaseService } from './database';
 import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, inputValidationMiddleware, httpsEnforcementMiddleware, errorHandler } from './middleware';
 
 const app: Application = express();
@@ -106,6 +107,50 @@ if (config.features.enableDebugRoutes) {
   app.get('/debug/error', (_req, _res) => {
     // This will trigger the error handler
     throw new Error('Test error for error handling demonstration');
+  });
+
+  app.get('/debug/database', async (_req, res) => {
+    try {
+      const dbInfo: any = {
+        type: config.database.type,
+        url: config.database.url,
+        hasSupabaseUrl: !!process.env['SUPABASE_URL'],
+        hasSupabaseKey: !!process.env['SUPABASE_ANON_KEY'],
+        supabaseUrl: process.env['SUPABASE_URL'] ? 'Set' : 'Not set',
+        supabaseKey: process.env['SUPABASE_ANON_KEY'] ? 'Set' : 'Not set'
+      };
+
+      // Test database connection
+      if (config.database.type === 'supabase') {
+        try {
+          // Try to create a test user to verify connection
+          const testUserId = 'test-' + Date.now();
+          await databaseService.createUser({
+            id: testUserId,
+            firstName: 'Test',
+            lastName: 'User',
+            email: `test-${Date.now()}@example.com`,
+            phone: `+1234567890${Date.now()}`
+          });
+          
+          // Clean up test user
+          await databaseService.deleteUser(testUserId);
+          
+          dbInfo.connectionTest = 'SUCCESS - Supabase connection working';
+        } catch (error: any) {
+          dbInfo.connectionTest = `FAILED - ${error.message}`;
+        }
+      } else {
+        dbInfo.connectionTest = 'SQLite - No connection test needed';
+      }
+
+      res.json(dbInfo);
+    } catch (error: any) {
+      res.status(500).json({
+        error: 'Database debug failed',
+        message: error.message
+      });
+    }
   });
 }
 

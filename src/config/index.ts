@@ -131,7 +131,7 @@ const config: Record<Environment, EnvironmentConfig> = {
       type: 'supabase'
     },
     features: {
-      enableDebugRoutes: false,
+      enableDebugRoutes: true, // Temporarily enabled for debugging
       enableMockData: false,
       enableExperimentalFeatures: false
     },
