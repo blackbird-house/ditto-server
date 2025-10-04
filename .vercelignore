@@ -1,0 +1,17 @@
+# Ignore TypeScript source files - only deploy compiled JavaScript
+api/*.ts
+src/**/*.ts
+__tests__/**
+*.test.ts
+*.spec.ts
+
+# Ignore development files
+.env*
+!.env.example
+node_modules/
+.git/
+*.log
+.DS_Store
+
+# Keep only the compiled dist directory
+!dist/
