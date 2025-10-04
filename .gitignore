@@ -73,8 +73,9 @@ data/
 ehthumbs.db
 Thumbs.db
 
-# Production secrets (never commit)
+# Production secrets and setup guides (never commit)
 secrets.production.txt
 *.secrets.txt
 SUPABASE_SETUP.md
 supabase-migrations.sql
+SETUP_GUIDE.md

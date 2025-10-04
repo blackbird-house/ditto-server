@@ -1,582 +1,170 @@
-# ditto-server
+# Ditto Server
 
-A ready-to-use easy-to-clone REST API server built with Node.js and Express.
+A ready-to-use, easy-to-clone REST API server built with Node.js, TypeScript, and Express. Features user management, authentication, and real-time chat capabilities.
+
+## ✨ Features
+
+- 🔐 **JWT Authentication** with phone-based OTP
+- 👥 **User Management** with profile management
+- 💬 **1-to-1 Chat System** with privacy controls
+- 🗄️ **Multi-Database Support** (SQLite for dev, Supabase for production)
+- 🌍 **Multi-Environment** configuration (dev, staging, production)
+- 📚 **OpenAPI Documentation** with Swagger UI
+- 🧪 **Comprehensive Testing** with Jest
+- 🚀 **Production Ready** with proper error handling and security
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
-```bash
-yarn install
-```
+1. **Clone and install:**
+   ```bash
+   git clone <repository-url>
+   cd ditto-server
+   yarn install
+   ```
 
-### 2. Environment Setup (REQUIRED)
-**⚠️ You must create environment files** in the project root. The application will automatically load the correct file based on `NODE_ENV`:
+2. **Set up environment:**
+   ```bash
+   cp env.example .env.development
+   # Edit .env.development with your configuration
+   ```
 
-#### For Development:
-Create `.env.development`:
-```bash
-# Development Environment Configuration
-NODE_ENV=development
-PORT=3000
+3. **Run the server:**
+   ```bash
+   yarn dev
+   ```
 
-# API Secrets
-API_SECRET=dev-secret-key-12345
-
-# JWT Configuration (for future secure implementation)
-JWT_SECRET=dev-jwt-secret-key-12345
-
-# Database Configuration
-DATABASE_URL=./data/ditto-dev.db
-
-# CORS Configuration (comma-separated origins)
-CORS_ORIGIN=http://localhost:3000,http://localhost:3001
-
-# OTP Service Configuration (for future real OTP service)
-# OTP_SERVICE_API_KEY=your-otp-service-api-key
-# OTP_SERVICE_URL=https://api.otp-service.com
-
-# Logging
-LOG_LEVEL=debug
-```
-
-#### For Testing:
-Create `.env.test`:
-```bash
-# Test Environment Configuration
-NODE_ENV=test
-PORT=3001
-
-# API Secrets
-API_SECRET=test-secret-key-67890
-
-# JWT Configuration (for future secure implementation)
-JWT_SECRET=test-jwt-secret-key-67890
-
-# Database Configuration
-DATABASE_URL=:memory:
-
-# CORS Configuration (comma-separated origins)
-CORS_ORIGIN=http://localhost:3001,http://localhost:3002
-
-# OTP Service Configuration (for future real OTP service)
-# OTP_SERVICE_API_KEY=your-otp-service-api-key
-# OTP_SERVICE_URL=https://api.otp-service.com
-
-# Logging
-LOG_LEVEL=error
-```
-
-> **🔒 Security Note**: The application now requires environment variables for all secrets. No fallback values are provided, ensuring that secrets must be explicitly configured for each environment.
-
-> **📁 Environment Loading**: The application automatically loads `.env.{NODE_ENV}` files. For example:
-> - `NODE_ENV=development` → loads `.env.development`
-> - `NODE_ENV=test` → loads `.env.test`
-> - `NODE_ENV=production` → loads `.env.production`
-> - Falls back to `.env` if environment-specific file doesn't exist
-
-### 3. Run the Server
-```bash
-# Development environment (unreliable, for BE engineers to play with)
-yarn dev
-
-# Build TypeScript to JavaScript
-yarn build
-
-# Staging environment (stable, pre-production)
-yarn staging
-
-# Production environment (customer-facing)
-yarn start
-
-# Type checking
-yarn type-check
-```
-
-The server will start on `http://localhost:${PORT}` (default port: 3000)
+4. **Test the API:**
+   ```bash
+   curl -X GET http://localhost:3000/ping -H "X-API-Secret: dev-secret-key-12345"
+   ```
 
 ## 📁 Project Structure
 
 ```
 ditto-server/
-├── src/               # TypeScript source code
-│   ├── config/        # Environment configurations
-│   │   └── index.ts   # Environment-specific settings
-│   ├── middleware/    # Express middleware
-│   │   ├── index.ts   # Middleware exports
-│   │   ├── urlNormalization.ts # URL normalization middleware
-│   │   ├── auth.ts    # JWT authentication middleware
-│   │   ├── secretValidation.ts # API secret validation middleware
-│   │   ├── jsonOnly.ts # JSON-only request/response enforcement
-│   │   └── errorHandler.ts # Global error handling middleware
-│   ├── routes/        # API endpoint modules
-│   │   └── ping.ts    # Health check endpoint
-│   ├── modules/       # Feature modules
-│   │   ├── users/     # User management module
-│   │   │   ├── types.ts      # User type definitions
-│   │   │   ├── service.ts    # User business logic (in-memory store)
-│   │   │   ├── controller.ts # User HTTP handlers
-│   │   │   └── routes.ts     # User routes
-│   │   ├── auth/      # Authentication module
-│   │   │   ├── types.ts      # Auth type definitions
-│   │   │   ├── controller.ts # Auth HTTP handlers
-│   │   │   ├── routes.ts     # Auth routes
-│   │   │   └── services/     # Auth services
-│   │   │       ├── authService.ts    # Core auth logic
-│   │   │       └── mockOtpService.ts # Mock OTP service
-│   │   └── chat/      # Chat messaging module
-│   │       ├── types.ts      # Chat type definitions
-│   │       ├── service.ts    # Chat business logic
-│   │       ├── controller.ts # Chat HTTP handlers
-│   │       └── routes.ts     # Chat routes
-│   ├── database/      # Database layer
-│   │   ├── index.ts   # Database service abstraction
-│   │   └── sqlite.ts  # SQLite database implementation
-│   ├── types/         # TypeScript type definitions
-│   │   └── index.ts   # Shared types and interfaces
-│   ├── app.ts         # Express app configuration
-│   └── server.ts      # Server startup
-├── dist/              # Compiled JavaScript (generated)
-├── __tests__/         # Test files
-│   ├── ping.test.ts   # Ping endpoint tests
-│   ├── server.test.ts # Server configuration tests
-│   ├── environments.test.ts # Environment tests
-│   ├── users.test.ts  # User module tests
-│   ├── auth.test.ts   # Authentication module tests
-│   ├── chat.test.ts   # Chat messaging module tests
-│   ├── secretValidation.test.ts # API secret validation tests
-│   ├── jsonOnly.test.ts # JSON-only enforcement tests
-│   └── errorHandler.test.ts # Global error handling tests
-├── package.json       # Project dependencies and scripts
-├── tsconfig.json      # TypeScript configuration
-├── jest.config.js     # Jest testing configuration
-├── yarn.lock         # Yarn lockfile
-├── env.example       # Environment variables template
-├── railway.json      # Production deployment config
-├── railway.staging.json # Staging deployment config
-├── railway.dev.json  # Development deployment config
-├── openapi.yaml      # API specification
-├── api-access.paw    # Paw API client for testing
-├── DEPLOYMENT.md     # Deployment instructions
-├── BRANCHING.md      # Git branching strategy
-├── .gitignore        # Git ignore rules
-└── README.md         # This file
+├── src/                    # TypeScript source code
+│   ├── config/            # Environment configurations
+│   ├── middleware/        # Express middleware
+│   ├── modules/           # Feature modules (users, auth, chat)
+│   ├── database/          # Database layer (SQLite & Supabase)
+│   ├── routes/            # API routes
+│   └── types/             # TypeScript definitions
+├── __tests__/             # Test files
+├── openapi/               # API documentation
+└── dist/                  # Compiled JavaScript
 ```
 
-## 🌿 Git Branching Strategy
-
-This project follows a **Git Flow** strategy with three main branches:
-
-- **`develop`** - Active development (unreliable, for testing)
-- **`staging`** - Pre-production (stable, ready for testing)
-- **`main`** - Production (customer-facing, stable)
-
-### **Workflow:**
-```
-develop → staging → main
-```
-
-### **Branch Usage:**
-- **New features** → Develop in `develop` branch
-- **Ready for testing** → Promote to `staging` branch
-- **Ready for release** → Promote to `main` branch
-
-See [BRANCHING.md](./BRANCHING.md) for detailed branching strategy and commands.
-
-## 🗄️ Database Configuration
-
-### Development Environment
-- **Database Type**: SQLite (file-based)
-- **Location**: `./data/ditto-dev.db`
-- **Setup**: No external setup required - database is created automatically
-- **Features**: 
-  - Automatic table creation on startup
-  - Persistent data storage
-  - Easy to reset (delete the .db file)
-
-### Production Environment
-- **Database Type**: MongoDB (configurable)
-- **Configuration**: Set `DATABASE_URL` environment variable
-- **Examples**:
-  - MongoDB: `mongodb://localhost:27017/ditto-prod`
-  - PostgreSQL: `postgresql://user:password@localhost:5432/ditto_prod`
-
-### Database Schema
-- **Users Table**: Stores user information (id, firstName, lastName, email, phone, timestamps)
-- **OTP Sessions Table**: Stores OTP verification sessions (id, phone, otp, expiresAt, createdAt)
-
-## 🔗 Available Endpoints
+## 🔗 API Endpoints
 
 ### Health Check
-- **GET** `/ping` - Returns 204 No Content (health check)
+- **GET** `/ping` - Health check endpoint
 
 ### User Management
 - **POST** `/users` - Create a new user
-- **GET** `/users/me` - Get authenticated user profile (requires authentication)
-- **PUT** `/users/me` - Update authenticated user profile (requires authentication)
-- **GET** `/users/:id` - Get user by ID (returns only id, firstName, lastName - requires authentication)
+- **GET** `/users/me` - Get authenticated user profile
+- **PUT** `/users/me` - Update user profile
+- **GET** `/users/:id` - Get user by ID
 
 ### Authentication
-- **POST** `/auth/send-otp` - Send OTP to phone number (returns 204)
-- **POST** `/auth/verify-otp` - Verify OTP and get authentication token
-- **POST** `/auth/refresh-token` - Refresh authentication token using refresh token
+- **POST** `/auth/send-otp` - Send OTP to phone number
+- **POST** `/auth/verify-otp` - Verify OTP and get tokens
+- **POST** `/auth/refresh-token` - Refresh authentication tokens
 
-### Chat (1-to-1 Messaging)
-- **POST** `/chats` - Create a new chat with another user (requires authentication)
-- **GET** `/chats` - Get all chats for authenticated user (requires authentication)
-- **GET** `/chats/:chatId` - Get specific chat with all messages (requires authentication)
-- **POST** `/chats/:chatId/messages` - Send a message to a chat (requires authentication)
-- **GET** `/chats/:chatId/messages` - Get all messages from a chat (requires authentication)
+### Chat System
+- **POST** `/chats` - Create a new chat
+- **GET** `/chats` - Get all user chats
+- **GET** `/chats/:chatId` - Get specific chat
+- **POST** `/chats/:chatId/messages` - Send a message
+- **GET** `/chats/:chatId/messages` - Get chat messages
 
-### Debug (Development Only)
-- **GET** `/debug/env` - Returns environment configuration (dev only)
-- **GET** `/debug/last-otp` - Get last generated OTP for testing (dev only)
-
-### API Documentation (Development Only)
-- **GET** `/docs` - Interactive Swagger UI documentation (returns HTML, dev/test only)
-
-## 💬 Chat System
-
-The API includes a simple 1-to-1 chat system with strong privacy controls:
-
-### **Privacy & Security**
-- **User Isolation**: Each user can only see their own chats
-- **Access Control**: Users can only access chats where they are a user
-- **Message Privacy**: Users can only view messages from chats they participate in
-- **Authentication Required**: All chat endpoints require valid JWT authentication
-
-### **Chat Features**
-- **Create Chats**: Start a new conversation with another user
-- **List Chats**: View all your conversations with last message preview
-- **View Chat**: Get full chat history with all messages
-- **Send Messages**: Send messages up to 1000 characters
-- **Message History**: Retrieve all messages from a specific chat
-
-### **Usage Example**
-```bash
-# 1. Create a chat with another user
-curl -X POST http://localhost:3000/chats \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"userId": "other-user-id"}'
-
-# 2. Send a message
-curl -X POST http://localhost:3000/chats/CHAT_ID/messages \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Hello, how are you?"}'
-
-# 3. Get all your chats
-curl -X GET http://localhost:3000/chats \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### **Token Refresh Example**
-```bash
-# 1. Login and get tokens
-curl -X POST http://localhost:3000/auth/verify-otp \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Content-Type: application/json" \
-  -d '{"phone": "+1234567890", "otp": "567890"}'
-
-# Response includes both token and refreshToken:
-# {
-#   "token": "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwiaWF0IjoxNzU3ODY0NTI4LCJleHAiOjE3NTc4NjQ4Mjh9",
-#   "refreshToken": "eyJ1c2VySWQiOiI0NjQxMTEwMy1iZTIwLTQyM2EtOWE1NC0zY2NlM2ZhNjJmZTUiLCJwaG9uZSI6IisxMjM0NTY3ODkwIiwidHlwZSI6InJlZnJlc2giLCJpYXQiOjE3NTc4NjQ1MjgsImV4cCI6MTc1ODQ2OTMyOH0"
-# }
-
-# 2. When your token expires (after 3 minutes), refresh it
-curl -X POST http://localhost:3000/auth/refresh-token \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken": "YOUR_REFRESH_TOKEN"}'
-
-# Response includes new tokens:
-# {
-#   "token": "NEW_SESSION_TOKEN",
-#   "refreshToken": "NEW_REFRESH_TOKEN"
-# }
-
-# 3. Use the new token for API calls
-curl -X GET http://localhost:3000/users/me \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Authorization: Bearer NEW_SESSION_TOKEN"
-```
-
-## 🧪 API Testing
-
-### Paw API Client
-The project includes `api-access.paw` - a Paw API client file for easy endpoint testing:
-
-- **File**: `api-access.paw` (in project root)
-- **Purpose**: Pre-configured API requests for all endpoints
-- **Usage**: Import into Paw app to quickly test endpoints
-- **Features**: 
-  - Pre-configured requests for all endpoints
-  - Environment-specific configurations
-  - Ready-to-use headers and parameters
-  - Authentication token handling
-
-To use the API client:
-1. Open Paw app
-2. Import the `api-access.paw` file
-3. Select the appropriate environment (development/staging/production)
-4. Run requests to test endpoints
+### Documentation
+- **GET** `/docs` - Interactive API documentation (Swagger UI)
 
 ## 🛠️ Technology Stack
 
 - **Node.js** - Runtime environment
 - **TypeScript** - Type-safe JavaScript
 - **Express.js** - Web framework
-- **Yarn** - Package manager
-- **CORS** - Cross-origin resource sharing
-- **Environment Configuration** - Multi-environment support
-- **Swagger UI** - Interactive API documentation
-- **OpenAPI 3.0** - API specification standard
+- **SQLite** - Development database
+- **Supabase** - Production database (PostgreSQL)
+- **JWT** - Authentication tokens
 - **Jest** - Testing framework
-- **Supertest** - HTTP testing
-- **Node.js Crypto** - UUID generation (built-in)
-- **In-Memory Storage** - Development data persistence
-- **Custom Middleware** - URL normalization for API client compatibility
-- **JWT Authentication** - Token-based authentication (base64 encoded)
-- **OTP Service** - Phone-based one-time password authentication
-- **Mock Services** - Development-friendly mock implementations
-- **API Secret Validation** - Environment-specific secret key authentication
-- **JSON-Only Enforcement** - Middleware to enforce JSON requests and responses
-- **Global Error Handling** - Comprehensive error handling with consistent JSON responses
-- **SQLite Database** - File-based database for development and testing
-- **1-to-1 Chat System** - Private messaging between users with privacy controls
-- **Message Privacy** - Users can only access their own chats and messages
+- **OpenAPI 3.0** - API documentation
 
-## 🌍 Environment Configuration
+## 🌍 Environment Support
 
-### Development Environment
-- **Purpose**: Unreliable playground for backend engineers
-- **Features**: Debug routes, experimental features, mock data, detailed startup logs
-- **Log Level**: Debug
-- **Start**: `yarn dev`
+- **Development** - SQLite database, debug routes enabled
+- **Staging** - SQLite database, production-like configuration
+- **Production** - Supabase database, optimized for performance
 
-### Staging Environment
-- **Purpose**: Stable pre-production environment
-- **Features**: Production-like but with testing capabilities
-- **Log Level**: Info
-- **Start**: `yarn staging`
+## 🔐 Security Features
 
-### Production Environment
-- **Purpose**: Customer-facing stable environment
-- **Features**: Optimized for performance and security, minimal startup logs
-- **Log Level**: Warn
-- **Start**: `yarn start`
+- **API Secret Authentication** - Environment-specific secret keys
+- **JWT Token Authentication** - Secure user authentication
+- **Phone-based OTP** - Two-factor authentication
+- **Row Level Security** - Database-level access control
+- **CORS Protection** - Configurable cross-origin policies
+- **Input Validation** - Request data validation
+- **Error Handling** - Secure error responses
 
-## 📋 API Requirements
+## 📚 Documentation
 
-### **JSON-Only Format**
-This API **only accepts and returns JSON format** (except for `/docs` which returns HTML):
-
-- **Requests**: All requests with a body must have `Content-Type: application/json` header
-- **Responses**: All responses are returned in JSON format with `Content-Type: application/json`
-- **Exception**: `/docs` endpoint returns HTML for Swagger UI
-- **Error Handling**: Invalid content types return a 400 Bad Request error
-
-#### **Example Usage**
-```bash
-# ❌ This will return 400 Bad Request
-curl -X POST http://localhost:3000/users \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -d '{"firstName":"John","lastName":"Doe"}'
-
-# ✅ This will work
-curl -X POST http://localhost:3000/users \
-  -H "X-API-Secret: dev-secret-key-12345" \
-  -H "Content-Type: application/json" \
-  -d '{"firstName":"John","lastName":"Doe","email":"john@example.com","phone":"+1234567890"}'
-```
-
-#### **Error Response for Invalid Content-Type**
-```json
-{
-  "error": "Bad Request",
-  "message": "Invalid request format"
-}
-```
-
-## 🔐 Authentication
-
-The API uses a two-layer authentication system:
-
-### **1. API Secret Authentication (Required for Most Requests)**
-Most API requests must include a valid secret header:
-
-- **Header**: `X-API-Secret`
-- **Purpose**: Prevents unauthorized access to the API
-- **Environment-Specific**: Each environment has its own secret key
-- **Excluded Endpoints**: `/docs` and `/debug/*` endpoints don't require the secret header
-
-#### **Environment Secret Keys**
-- **Development**: `dev-secret-key-12345`
-- **Test**: `test-secret-key-67890`
-- **Staging**: `staging-secret-key-abcdef`
-- **Production**: `prod-secret-key-xyz789`
-
-#### **Example Usage**
-```bash
-# ❌ This will return 401 Unauthorized
-curl -X GET http://localhost:3000/ping
-
-# ✅ This will work
-curl -X GET http://localhost:3000/ping -H "X-API-Secret: dev-secret-key-12345"
-
-# ✅ Debug endpoints work without secret header
-curl -X GET http://localhost:3000/debug/env
-curl -X GET http://localhost:3000/docs
-```
-
-### **2. User Authentication (Phone-based OTP)**
-For user-specific operations, the API uses phone-based OTP authentication:
-
-#### **Authentication Flow**
-1. **Register**: `POST /users` (create user account)
-2. **Request OTP**: `POST /auth/send-otp` (send OTP to phone)
-3. **Verify OTP**: `POST /auth/verify-otp` (get authentication token and refresh token)
-4. **Use Token**: Include `Authorization: Bearer <token>` header for protected endpoints
-5. **Refresh Token**: `POST /auth/refresh-token` (get new tokens when current token expires)
-
-#### **Protected Endpoints**
-- `GET /users/me` - Get authenticated user profile
-- `PUT /users/me` - Update authenticated user profile
-- `GET /users/:id` - Get user by ID (returns only public info)
-
-#### **Token Details**
-- **Format**: JWT (base64 encoded)
-- **Session Token Expiration**: 3 minutes
-- **Refresh Token Expiration**: 30 days
-- **Header**: `Authorization: Bearer <token>`
-
-#### **Token Refresh Strategy**
-- **Session Token**: Short-lived (3 minutes) for security
-- **Refresh Token**: Long-lived (30 days) for convenience
-- **Refresh Logic**: If refresh token is valid and not older than 30 days, user can get new tokens
-- **Re-authentication**: If refresh token is expired or invalid, user must login again with OTP
-
-#### **Development OTP**
-In development, the OTP is the last 6 digits of the phone number (e.g., phone `+1234567890` → OTP `567890`)
-
-## ⚠️ Error Handling
-
-The API returns consistent JSON error responses for all error scenarios:
-
-### **Error Response Format**
-```json
-{
-  "error": "Error Type",
-  "message": "Detailed error message"
-}
-```
-
-### **Common Error Codes**
-- **400** - Bad Request (missing/invalid data)
-  - Invalid content type: `{"error":"Bad Request","message":"Invalid request format"}`
-  - Missing required fields: `{"error":"Bad Request","message":"Invalid request data"}`
-- **401** - Unauthorized (missing/invalid authentication)
-  - Missing API secret: `{"error":"Unauthorized","message":"Authentication required"}`
-  - Invalid API secret: `{"error":"Unauthorized","message":"Authentication required"}`
-  - Invalid/missing JWT token: `{"error":"Unauthorized","message":"Authentication required"}`
-- **404** - Not Found (resource doesn't exist)
-- **409** - Conflict (duplicate data)
-- **500** - Internal Server Error
-  - Standard response: `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later."}`
-  - Development/Test (includes debugging): `{"error":"Internal Server Error","message":"An unexpected error occurred. Please try again later.","details":"Specific error message","stack":"Full error stack trace"}`
-
-### **Global Error Handler**
-The API includes a comprehensive error handling system:
-
-#### **404 Handler**
-All undefined routes return a proper JSON 404 response instead of HTML error pages:
-```json
-{
-  "error": "Not found",
-  "message": "Cannot PUT /users/some-id"
-}
-```
-
-#### **500 Error Handler**
-All unhandled errors and server crashes are caught by a global error handler that:
-- Returns consistent 500 JSON responses
-- Logs detailed error information (development/test only)
-- Includes debugging details in development/test environments
-- Prevents server crashes from exposing sensitive information
-- Maintains JSON response format even during errors
-
-#### **Debug Endpoint**
-For testing error handling, use the debug endpoint (development only):
-```bash
-curl -X GET http://localhost:3000/debug/error
-```
-
-## 📝 Development
-
-This project uses a modular route structure for easy scalability. To add new endpoints:
-
-1. Create a new route file in the `modules/` directory
-2. Import and register the route in `src/app.ts`
-3. Update this README with the new endpoint documentation
-4. Add tests in the `__tests__/` directory
-
-## 🚀 Deployment
-
-### Railway (Recommended)
-1. Push your code to GitHub
-2. Sign up at [railway.app](https://railway.app)
-3. Connect your GitHub repository
-4. Deploy automatically - Railway will detect the Node.js app
-5. Your API will be available at `https://your-app-name.railway.app`
-
-### Render
-1. Push your code to GitHub
-2. Sign up at [render.com](https://render.com)
-3. Create a new Web Service
-4. Connect your GitHub repository
-5. Deploy - your API will be available at `https://your-app-name.onrender.com`
-
-### Testing with RapidAPI
-Once deployed, you can test your API with RapidAPI:
-1. Go to [RapidAPI Provider Dashboard](https://rapidapi.com/provider)
-2. Add your deployed API URL as the base URL
-3. Test the `/ping` endpoint
+- **API Documentation** - Available at `/docs` endpoint (Swagger UI)
+- **Setup Guide** - See `SETUP_GUIDE.md` for detailed setup instructions
+- **Deployment Guide** - See `DEPLOYMENT.md` for deployment instructions
+- **Branching Strategy** - See `BRANCHING.md` for Git workflow
 
 ## 🧪 Testing
 
-### Running Tests
 ```bash
 # Run all tests
 yarn test
 
-# Run tests for specific environments
-yarn test:dev      # Development environment tests
-yarn test:staging  # Staging environment tests
-yarn test:prod     # Production environment tests
-
-# Run tests with coverage
+# Run with coverage
 yarn test:coverage
 
-# Run tests in watch mode
-yarn test:watch
+# Run specific environment tests
+yarn test:dev
+yarn test:staging
+yarn test:prod
 ```
 
+## 🚀 Deployment
 
-## 📋 TODO
+The API is designed to be deployed on modern platforms:
 
-- [ ] Add more API endpoints as needed
-- [x] Add database integration ✅
-- [x] Add comprehensive testing suite ✅
-- [x] Convert to TypeScript ✅
-- [x] Add API documentation (Swagger/OpenAPI) ✅
-- [x] Implement phone-based OTP authentication ✅
-- [x] Add user management with authentication ✅
-- [x] Add proper error handling (JSON responses) ✅
-- [x] Add authentication middleware ✅
-- [x] Add API secret validation ✅
-- [x] Add JSON-only request/response enforcement ✅
+- **Railway** (recommended)
+- **Render**
+- **Vercel**
+- **Heroku**
 
+See the setup guide for detailed deployment instructions.
+
+## 📋 Requirements
+
+- Node.js 18+ 
+- Yarn package manager
+- Environment variables configured (see setup guide)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+For setup and configuration help, see:
+- `SETUP_GUIDE.md` - Detailed setup instructions
+- `DEPLOYMENT.md` - Deployment guide
+- API documentation at `/docs` endpoint
+
+---
+
+**Ready to build your next API?** Clone this repository and start building! 🚀
