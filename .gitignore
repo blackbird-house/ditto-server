@@ -76,3 +76,5 @@ Thumbs.db
 # Production secrets (never commit)
 secrets.production.txt
 *.secrets.txt
+SUPABASE_SETUP.md
+supabase-migrations.sql

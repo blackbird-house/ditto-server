@@ -8,7 +8,7 @@ export interface EnvironmentConfig {
   };
   database: {
     url: string;
-    type: 'sqlite' | 'mongodb' | 'postgresql';
+    type: 'sqlite' | 'mongodb' | 'postgresql' | 'supabase';
   };
   features: {
     enableDebugRoutes: boolean;

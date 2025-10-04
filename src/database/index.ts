@@ -56,11 +56,40 @@ export interface DatabaseService {
 
 class DatabaseServiceWrapper implements DatabaseService {
   private sqliteDb: SQLiteDatabase | null = null;
+  private supabaseDb: any = null;
 
   constructor() {
-    // Initialize SQLite if configured
+    // Initialize database based on configuration
     if (config.database.type === 'sqlite') {
       this.sqliteDb = getDatabase(config.database.url);
+    } else if (config.database.type === 'supabase') {
+      // In test environment or when NODE_ENV is test, always use SQLite to avoid network calls
+      if (config.env === 'test' || process.env['NODE_ENV'] === 'test') {
+        console.warn('⚠️  Using SQLite in test environment instead of Supabase to avoid network calls');
+        this.sqliteDb = getDatabase(':memory:');
+      } else {
+        // Only import and initialize Supabase in non-test environments
+        this.initializeSupabaseSync();
+      }
+    }
+  }
+
+  private initializeSupabaseSync() {
+    try {
+      // Use require instead of import to avoid module loading issues
+      const { getSupabaseDatabase } = require('./supabase');
+      
+      const supabaseUrl = process.env['SUPABASE_URL'];
+      const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required for Supabase');
+      }
+      
+      this.supabaseDb = getSupabaseDatabase(supabaseUrl, supabaseAnonKey);
+    } catch (error) {
+      console.error('Failed to initialize Supabase:', error);
+      throw error;
     }
   }
 
@@ -74,6 +103,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createUser(userData);
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.createUser(userData);
     } else {
       throw new Error('Database not configured');
     }
@@ -82,6 +113,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getUserById(id: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getUserById(id);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getUserById(id);
     } else {
       throw new Error('Database not configured');
     }
@@ -90,6 +123,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getUserByEmail(email: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getUserByEmail(email);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getUserByEmail(email);
     } else {
       throw new Error('Database not configured');
     }
@@ -98,6 +133,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getUserByPhone(phone: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getUserByPhone(phone);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getUserByPhone(phone);
     } else {
       throw new Error('Database not configured');
     }
@@ -111,6 +148,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   }>): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.updateUser(id, updates);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.updateUser(id, updates);
     } else {
       throw new Error('Database not configured');
     }
@@ -119,6 +158,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async deleteUser(id: string): Promise<boolean> {
     if (this.sqliteDb) {
       return this.sqliteDb.deleteUser(id);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.deleteUser(id);
     } else {
       throw new Error('Database not configured');
     }
@@ -133,6 +174,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createOtpSession(sessionData);
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.createOtpSession(sessionData);
     } else {
       throw new Error('Database not configured');
     }
@@ -141,6 +184,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getOtpSession(phone: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getOtpSession(phone);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getOtpSession(phone);
     } else {
       throw new Error('Database not configured');
     }
@@ -149,6 +194,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async deleteOtpSession(id: string): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.deleteOtpSession(id);
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.deleteOtpSession(id);
     } else {
       throw new Error('Database not configured');
     }
@@ -157,6 +204,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async cleanupExpiredOtpSessions(): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.cleanupExpiredOtpSessions();
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.cleanupExpiredOtpSessions();
     } else {
       throw new Error('Database not configured');
     }
@@ -170,6 +219,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createChat(chatData);
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.createChat(chatData);
     } else {
       throw new Error('Database not configured');
     }
@@ -178,6 +229,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getChatById(id: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getChatById(id);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getChatById(id);
     } else {
       throw new Error('Database not configured');
     }
@@ -186,6 +239,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getChatByParticipants(user1Id: string, user2Id: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getChatByParticipants(user1Id, user2Id);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getChatByParticipants(user1Id, user2Id);
     } else {
       throw new Error('Database not configured');
     }
@@ -194,6 +249,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getUserChats(userId: string): Promise<any[]> {
     if (this.sqliteDb) {
       return this.sqliteDb.getUserChats(userId);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getUserChats(userId);
     } else {
       throw new Error('Database not configured');
     }
@@ -202,6 +259,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async updateChatUpdatedAt(chatId: string): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.updateChatUpdatedAt(chatId);
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.updateChatUpdatedAt(chatId);
     } else {
       throw new Error('Database not configured');
     }
@@ -216,6 +275,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createMessage(messageData);
+    } else if (this.supabaseDb) {
+      await this.supabaseDb.createMessage(messageData);
     } else {
       throw new Error('Database not configured');
     }
@@ -224,6 +285,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]> {
     if (this.sqliteDb) {
       return this.sqliteDb.getChatMessages(chatId, limit, offset);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getChatMessages(chatId, limit, offset);
     } else {
       throw new Error('Database not configured');
     }
@@ -232,6 +295,8 @@ class DatabaseServiceWrapper implements DatabaseService {
   async getLastMessageForChat(chatId: string): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getLastMessageForChat(chatId);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getLastMessageForChat(chatId);
     } else {
       throw new Error('Database not configured');
     }

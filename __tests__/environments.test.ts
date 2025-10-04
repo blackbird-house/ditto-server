@@ -62,9 +62,27 @@ describe('Environment-Specific Tests', () => {
   describe('Production Environment', () => {
     beforeAll(() => {
       jest.resetModules();
+      
+      // Mock the Supabase client to avoid network calls
+      jest.mock('@supabase/supabase-js', () => ({
+        createClient: jest.fn(() => ({
+          from: jest.fn(() => ({
+            select: jest.fn(() => ({
+              limit: jest.fn(() => ({
+                single: jest.fn(() => Promise.resolve({ data: null, error: null }))
+              }))
+            }))
+          }))
+        }))
+      }));
+      
       process.env['NODE_ENV'] = 'production';
       process.env['API_SECRET'] = 'production-secret-key-12345';
       process.env['JWT_SECRET'] = 'production-jwt-secret-key-12345';
+      // Provide mock Supabase credentials for testing
+      process.env['SUPABASE_URL'] = 'https://test-project.supabase.co';
+      process.env['SUPABASE_ANON_KEY'] = 'test-anon-key';
+      
       app = require('../src/app').default;
       config = require('../src/config').default;
     });

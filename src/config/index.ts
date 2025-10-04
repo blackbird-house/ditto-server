@@ -95,8 +95,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       credentials: true
     },
     database: {
-      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-staging',
-      type: 'mongodb'
+      url: process.env['DATABASE_URL'] || './data/ditto-staging.db',
+      type: 'sqlite'
     },
     features: {
       enableDebugRoutes: false,
@@ -127,8 +127,8 @@ const config: Record<Environment, EnvironmentConfig> = {
       credentials: true
     },
     database: {
-      url: process.env['DATABASE_URL'] || 'mongodb://localhost:27017/ditto-prod',
-      type: 'mongodb'
+      url: process.env['DATABASE_URL'] || 'supabase://production',
+      type: 'supabase'
     },
     features: {
       enableDebugRoutes: false,
