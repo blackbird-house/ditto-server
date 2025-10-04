@@ -79,14 +79,9 @@ class DatabaseServiceWrapper implements DatabaseService {
       // Use require instead of import to avoid module loading issues
       const { getSupabaseDatabase } = require('./supabase');
       
-      const supabaseUrl = process.env['DITTO_PUBLIC_SUPABASE_URL'];
-      const supabaseAnonKey = process.env['DITTO_PUBLIC_SUPABASE_ANON_KEY'];
-      
-      console.log('supabaseUrl', supabaseUrl);
-      console.log('supabaseAnonKey', supabaseAnonKey);
-      console.log('process.env', process.env['SUPABASE_URL']);
-      console.log('process.env', process.env['SUPABASE_ANON_KEY']);
-      
+      const supabaseUrl = process.env['SUPABASE_URL'];
+      const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
+
       if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required for Supabase');
       }

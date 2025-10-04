@@ -35,7 +35,7 @@ A ready-to-use, easy-to-clone REST API server built with Node.js, TypeScript, an
 
 4. **Test the API:**
    ```bash
-   curl -X GET http://localhost:3000/ping -H "X-API-Secret: dev-secret-key-12345"
+   curl -X GET http://localhost:3000/ping
    ```
 
 ## 📁 Project Structure
@@ -110,9 +110,6 @@ ditto-server/
 ## 📚 Documentation
 
 - **API Documentation** - Available at `/docs` endpoint (Swagger UI)
-- **Setup Guide** - See `SETUP_GUIDE.md` for detailed setup instructions
-- **Deployment Guide** - See `DEPLOYMENT.md` for deployment instructions
-- **Branching Strategy** - See `BRANCHING.md` for Git workflow
 
 ## 🧪 Testing
 
@@ -129,42 +126,8 @@ yarn test:staging
 yarn test:prod
 ```
 
-## 🚀 Deployment
-
-The API is designed to be deployed on modern platforms:
-
-- **Railway** (recommended)
-- **Render**
-- **Vercel**
-- **Heroku**
-
-See the setup guide for detailed deployment instructions.
-
 ## 📋 Requirements
 
 - Node.js 18+ 
 - Yarn package manager
 - Environment variables configured (see setup guide)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
-## 🆘 Support
-
-For setup and configuration help, see:
-- `SETUP_GUIDE.md` - Detailed setup instructions
-- `DEPLOYMENT.md` - Deployment guide
-- API documentation at `/docs` endpoint
-
----
-
-**Ready to build your next API?** Clone this repository and start building! 🚀
