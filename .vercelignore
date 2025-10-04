@@ -15,3 +15,11 @@ node_modules/
 
 # Keep only the compiled dist directory
 !dist/
+
+# Custom files
+api-access.paw
+secrets.production.txt
+*.secrets.txt
+SUPABASE_SETUP.md
+supabase-migrations.sql
+SETUP_GUIDE.md
