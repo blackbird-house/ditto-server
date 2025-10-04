@@ -1,6 +1,6 @@
 # Ignore TypeScript source files - only deploy compiled JavaScript
 api/*.ts
-src/**/*.ts
+!index.ts
 __tests__/**
 *.test.ts
 *.spec.ts
