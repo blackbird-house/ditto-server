@@ -2,17 +2,12 @@ import { User, CreateUserRequest, UserService } from './types';
 import { randomUUID } from 'crypto';
 import config from '../../config';
 import { DatabaseUserService } from './databaseService';
+import { BusinessUserService } from './businessService';
 
 class InMemoryUserService implements UserService {
   private users: Map<string, User> = new Map();
 
   createUser(userData: CreateUserRequest): User {
-    // Check if user with email already exists
-    const existingUser = this.getUserByEmail(userData.email);
-    if (existingUser) {
-      throw new Error('User with this email already exists');
-    }
-
     const now = new Date();
     const user: User = {
       id: randomUUID(),
@@ -51,14 +46,6 @@ class InMemoryUserService implements UserService {
       return null;
     }
 
-    // Check if email is being updated and if it already exists
-    if (userData.email && userData.email !== user.email) {
-      const existingUser = this.getUserByEmail(userData.email);
-      if (existingUser) {
-        throw new Error('User with this email already exists');
-      }
-    }
-
     const updatedUser: User = {
       ...user,
       ...userData,
@@ -74,7 +61,10 @@ class InMemoryUserService implements UserService {
   }
 }
 
-// Export appropriate service based on configuration
-export const userService = config.database.type === 'sqlite' 
+// Create the appropriate data service based on configuration
+const dataService = config.database.type === 'sqlite' 
   ? new DatabaseUserService() 
   : new InMemoryUserService();
+
+// Export business service that wraps the data service
+export const userService = new BusinessUserService(dataService);

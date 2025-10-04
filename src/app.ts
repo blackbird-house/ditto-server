@@ -4,21 +4,21 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
-import pingRoutes from './routes/ping';
 import userRoutes from './modules/users/routes';
 import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
+import { opsRoutes } from './modules/ops';
+import { debugRoutes, testSupabaseConnection } from './modules/debug';
 import config from './config';
-import { databaseService } from './database';
-import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, inputValidationMiddleware, httpsEnforcementMiddleware, errorHandler } from './middleware';
+import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, inputValidationMiddleware, httpsEnforcementMiddleware, loggingMiddleware, errorHandler } from './middleware';
 
 const app: Application = express();
 
-// Load OpenAPI specification
-const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/openapi-consolidated.yaml'));
-
 // API Documentation (Swagger UI) - MUST be before middleware to avoid authentication
 if (config.features.enableDebugRoutes) {
+  // Load OpenAPI specification
+  const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/openapi-consolidated.yaml'));
+  
   // Serve OpenAPI spec as JSON
   app.get('/api-docs', (_req, res) => {
     res.json(swaggerDocument);
@@ -67,92 +67,24 @@ app.use(express.json());
 app.use(cors(config.cors));
 
 // Logging middleware (only in non-test environments)
-if (config.env !== 'test') {
-  app.use((req, _res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
-    next();
-  });
-}
-
+app.use(loggingMiddleware);
 
 // Routes
-app.use('/ping', pingRoutes);
+app.use('/', opsRoutes);
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/chats', chatRoutes);
 
 // Debug routes (only in development and test)
 if (config.features.enableDebugRoutes) {
-  app.get('/debug/env', (_req, res) => {
-    res.json({
-      environment: config.env,
-      port: config.port,
-      features: config.features
-    });
-  });
-
-  app.get('/debug/last-otp', (_req, res) => {
-    const lastOtp = (global as any).lastOtp;
-    if (lastOtp) {
-      res.json({
-        phone: lastOtp.phone,
-        otp: lastOtp.otp,
-        otpId: lastOtp.otpId
-      });
-    } else {
-      res.json({ message: 'No OTP sent yet' });
-    }
-  });
-
-  app.get('/debug/error', (_req, _res) => {
-    // This will trigger the error handler
-    throw new Error('Test error for error handling demonstration');
-  });
-
-  app.get('/debug/database', async (_req, res) => {
-    try {
-      const dbInfo: any = {
-        type: config.database.type,
-        url: config.database.url,
-        hasSupabaseUrl: !!process.env['SUPABASE_URL'],
-        hasSupabaseKey: !!process.env['SUPABASE_ANON_KEY'],
-        supabaseUrl: process.env['SUPABASE_URL'] ? 'Set' : 'Not set',
-        supabaseKey: process.env['SUPABASE_ANON_KEY'] ? 'Set' : 'Not set'
-      };
-
-      // Test database connection
-      if (config.database.type === 'supabase') {
-        try {
-          // Try to create a test user to verify connection
-          const testUserId = 'test-' + Date.now();
-          await databaseService.createUser({
-            id: testUserId,
-            firstName: 'Test',
-            lastName: 'User',
-            email: `test-${Date.now()}@example.com`,
-            phone: `+1234567890${Date.now()}`
-          });
-          
-          // Clean up test user
-          await databaseService.deleteUser(testUserId);
-          
-          dbInfo.connectionTest = 'SUCCESS - Supabase connection working';
-        } catch (error: any) {
-          dbInfo.connectionTest = `FAILED - ${error.message}`;
-        }
-      } else {
-        dbInfo.connectionTest = 'SQLite - No connection test needed';
-      }
-
-      res.json(dbInfo);
-    } catch (error: any) {
-      res.status(500).json({
-        error: 'Database debug failed',
-        message: error.message
-      });
-    }
-  });
+  app.use('/debug', debugRoutes);
 }
+
+// Only run Supabase connection test in development mode
+if (config.env === 'development') {
+  testSupabaseConnection();
+}
+
 
 // 404 handler for undefined routes
 app.use('*', (_req, res) => {

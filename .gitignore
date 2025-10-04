@@ -79,3 +79,6 @@ secrets.production.txt
 SUPABASE_SETUP.md
 supabase-migrations.sql
 SETUP_GUIDE.md
+
+# Debug module (development only - never deploy)
+src/modules/debug/

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { Application } from 'express';
-import { EnvironmentConfig } from '../src/types';
+import { EnvironmentConfig } from '../src/config/types';
 
 describe('Environment-Specific Tests', () => {
   let app: Application;

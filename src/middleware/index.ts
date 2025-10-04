@@ -4,4 +4,5 @@ export { secretValidationMiddleware } from './secretValidation';
 export { jsonOnlyMiddleware } from './jsonOnly';
 export { inputValidationMiddleware } from './inputValidation';
 export { httpsEnforcementMiddleware } from './httpsEnforcement';
+export { loggingMiddleware } from './logging';
 export { errorHandler, wrapAsync } from './errorHandler';

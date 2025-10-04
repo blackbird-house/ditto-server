@@ -4,12 +4,6 @@ import { databaseService } from '../../database';
 
 class DatabaseUserService implements UserService {
   async createUser(userData: CreateUserRequest): Promise<User> {
-    // Check if user with email already exists
-    const existingUser = await this.getUserByEmail(userData.email);
-    if (existingUser) {
-      throw new Error('User with this email already exists');
-    }
-
     const now = new Date();
     const user: User = {
       id: randomUUID(),
@@ -62,14 +56,6 @@ class DatabaseUserService implements UserService {
   }
 
   async updateUser(id: string, userData: Partial<CreateUserRequest>): Promise<User | null> {
-    // Check if email is being updated and if it already exists
-    if (userData.email) {
-      const existingUser = await this.getUserByEmail(userData.email);
-      if (existingUser && existingUser.id !== id) {
-        throw new Error('User with this email already exists');
-      }
-    }
-
     const updatedUser = await databaseService.updateUser(id, userData);
     if (!updatedUser) return null;
 
