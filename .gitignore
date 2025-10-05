@@ -82,3 +82,5 @@ SETUP_GUIDE.md
 
 # Debug module (development only - never deploy)
 src/modules/debug/
+scripts/
+openapi/

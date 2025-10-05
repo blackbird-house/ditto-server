@@ -66,7 +66,7 @@ export class SQLiteDatabase {
 
       // Create messages table
       await run(`
-        CREATE TABLE IF NOT EXISTS messages (
+        CREATE TABLE IF NOT EXISTS chat_messages (
           id TEXT PRIMARY KEY,
           chatId TEXT NOT NULL,
           senderId TEXT NOT NULL,
@@ -278,14 +278,14 @@ export class SQLiteDatabase {
 
   async getChatMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
     return this.all(
-      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?',
+      'SELECT * FROM chat_messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?',
       [chatId, limit, offset]
     );
   }
 
   async getLastMessageForChat(chatId: string): Promise<any> {
     return this.get(
-      'SELECT * FROM messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT 1',
+      'SELECT * FROM chat_messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT 1',
       [chatId]
     );
   }
