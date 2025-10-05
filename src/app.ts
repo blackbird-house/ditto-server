@@ -8,7 +8,7 @@ import userRoutes from './modules/users/routes';
 import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
 import { opsRoutes } from './modules/ops';
-import { debugRoutes, testSupabaseConnection } from './modules/debug';
+import { debugRoutes } from './modules/debug';
 import config from './config';
 import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, inputValidationMiddleware, httpsEnforcementMiddleware, loggingMiddleware, errorHandler } from './middleware';
 
@@ -75,16 +75,10 @@ app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/chats', chatRoutes);
 
-// Debug routes (only in development and test)
+// Debug routes (only loaded if enableDebugRoutes is true)
 if (config.features.enableDebugRoutes) {
   app.use('/debug', debugRoutes);
 }
-
-// Only run Supabase connection test in development mode
-if (config.env === 'development') {
-  testSupabaseConnection();
-}
-
 
 // 404 handler for undefined routes
 app.use('*', (_req, res) => {

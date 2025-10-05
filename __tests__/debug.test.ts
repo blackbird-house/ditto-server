@@ -17,8 +17,6 @@ describe('Debug Module', () => {
       expect(response.body).toHaveProperty('port');
       expect(response.body).toHaveProperty('features');
       expect(response.body.features).toHaveProperty('enableDebugRoutes');
-      expect(response.body.features).toHaveProperty('enableMockData');
-      expect(response.body.features).toHaveProperty('enableExperimentalFeatures');
     });
 
     it('should return test environment in test mode', async () => {

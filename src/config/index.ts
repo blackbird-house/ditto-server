@@ -42,13 +42,11 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       credentials: true
     },
       database: {
-        url: process.env['SUPABASE_URL'] || './data/ditto-dev.db',
-        type: process.env['SUPABASE_URL'] ? 'supabase' : 'sqlite'
+        url: process.env['DATABASE_URL'] || './data/ditto-dev.db',
+        type: 'sqlite'
       },
     features: {
       enableDebugRoutes: true,
-      enableMockData: true,
-      enableExperimentalFeatures: true
     },
     secret: {
       key: process.env['API_SECRET'] || (() => {
@@ -79,8 +77,6 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
     },
     features: {
       enableDebugRoutes: true,
-      enableMockData: true,
-      enableExperimentalFeatures: true
     },
     secret: {
       key: process.env['API_SECRET'] || (() => {
@@ -106,13 +102,13 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       credentials: true
     },
     database: {
-      url: process.env['DATABASE_URL'] || './data/ditto-staging.db',
+      url: process.env['DATABASE_URL'] || (() => {
+        throw new Error('DATABASE_URL environment variable is required');
+      })(),
       type: 'sqlite'
     },
     features: {
       enableDebugRoutes: false,
-      enableMockData: false,
-      enableExperimentalFeatures: false
     },
     secret: {
       key: process.env['API_SECRET'] || (() => {
@@ -138,15 +134,13 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       credentials: true
     },
     database: {
-      url: process.env['SUPABASE_URL'] || (() => {
-        throw new Error('SUPABASE_URL environment variable is required for production');
+      url: process.env['DATABASE_URL'] || (() => {
+        throw new Error('DATABASE_URL environment variable is required for production');
       })(),
       type: 'supabase'
     },
     features: {
       enableDebugRoutes: false,
-      enableMockData: false,
-      enableExperimentalFeatures: false
     },
     secret: {
       key: process.env['API_SECRET'] || (() => {

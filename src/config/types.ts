@@ -12,8 +12,6 @@ export interface EnvironmentConfig {
   };
   features: {
     enableDebugRoutes: boolean;
-    enableMockData: boolean;
-    enableExperimentalFeatures: boolean;
   };
   secret: {
     key: string;

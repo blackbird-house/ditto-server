@@ -79,11 +79,11 @@ class DatabaseServiceWrapper implements DatabaseService {
       // Use require instead of import to avoid module loading issues
       const { getSupabaseDatabase } = require('./supabase');
       
-      const supabaseUrl = process.env['SUPABASE_URL'];
-      const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
+      const supabaseUrl = process.env['DATABASE_URL'];
+      const supabaseAnonKey = process.env['DATABASE_KEY'];
 
       if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required for Supabase');
+        throw new Error('DATABASE_URL and DATABASE_KEY environment variables are required for Supabase');
       }
       
       this.supabaseDb = getSupabaseDatabase(supabaseUrl, supabaseAnonKey);
