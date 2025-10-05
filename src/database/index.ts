@@ -1,5 +1,6 @@
 import config from '../config';
 import { SQLiteDatabase, getDatabase } from './sqlite';
+import { SupabaseDatabase } from './supabase';
 
 export interface DatabaseService {
   // User operations
@@ -56,7 +57,7 @@ export interface DatabaseService {
 
 class DatabaseServiceWrapper implements DatabaseService {
   private sqliteDb: SQLiteDatabase | null = null;
-  private supabaseDb: any = null;
+  private supabaseDb: SupabaseDatabase | null = null;
 
   constructor() {
     // Initialize database based on configuration
