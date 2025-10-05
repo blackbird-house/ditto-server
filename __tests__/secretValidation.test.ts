@@ -38,35 +38,6 @@ describe('Secret Validation Middleware', () => {
     });
   });
 
-  describe('GET /debug/env', () => {
-    it('should return 200 when secret header is missing (debug endpoints excluded)', async () => {
-      const response = await request(app)
-        .get('/debug/env');
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('environment');
-    });
-
-    it('should return 200 when secret header is invalid (debug endpoints excluded)', async () => {
-      const response = await request(app)
-        .get('/debug/env')
-        .set('X-API-Secret', invalidSecret);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('environment');
-    });
-
-    it('should return 200 when secret header is valid', async () => {
-      const response = await request(app)
-        .get('/debug/env')
-        .set('X-API-Secret', validSecret);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('environment');
-      expect(response.body).toHaveProperty('port');
-      expect(response.body).toHaveProperty('features');
-    });
-  });
 
   describe('POST /users', () => {
     it('should return 401 when secret header is missing', async () => {

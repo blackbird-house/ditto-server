@@ -12,7 +12,6 @@ const server = app.listen(PORT, () => {
     console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
     if (config.features.enableDebugRoutes) {
       console.log(`📚 API Documentation: http://localhost:${PORT}/docs`);
-      console.log(`🐛 Debug endpoint: http://localhost:${PORT}/debug/env`);
     }
   }
 });

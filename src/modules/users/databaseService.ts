@@ -49,6 +49,21 @@ class DatabaseUserService implements UserService {
     };
   }
 
+  async getUserByPhone(phone: string): Promise<User | null> {
+    const user = await databaseService.getUserByPhone(phone);
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      createdAt: new Date(user.createdAt),
+      updatedAt: new Date(user.updatedAt),
+    };
+  }
+
   async getAllUsers(): Promise<User[]> {
     // This method is not implemented in the database service yet
     // For now, return empty array

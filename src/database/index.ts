@@ -64,14 +64,9 @@ class DatabaseServiceWrapper implements DatabaseService {
     if (config.database.type === 'sqlite') {
       this.sqliteDb = getDatabase(config.database.url);
     } else if (config.database.type === 'supabase') {
-      // In test environment or when NODE_ENV is test, always use SQLite to avoid network calls
-      if (config.env === 'test' || process.env['NODE_ENV'] === 'test') {
-        console.warn('⚠️  Using SQLite in test environment instead of Supabase to avoid network calls');
-        this.sqliteDb = getDatabase(':memory:');
-      } else {
-        // Only import and initialize Supabase in non-test environments
-        this.initializeSupabaseSync();
-      }
+      this.initializeSupabaseSync();
+    } else {
+      this.sqliteDb = getDatabase(':memory:');
     }
   }
 

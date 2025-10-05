@@ -3,17 +3,29 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables from environment-specific .env file
-const env = (process.env['NODE_ENV'] || 'development') as Environment;
+const env = process.env['NODE_ENV'] as Environment;
+if (!env) {
+  throw new Error('NODE_ENV environment variable is required but not set');
+}
+
 const envFile = `.env.${env}`;
-
 console.log(`🔧 Loading config for environment: ${env}`);
-console.log(`📁 Environment file: ${envFile}`);
 
-// Try to load environment-specific file first, then fallback to .env
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+// Only load .env files in development and test environments
+// In production and staging, rely on environment variables already set by the deployment platform
+if (env !== 'production') {
+  console.log(`📁 Environment file: ${envFile}`);
+  
+  // Try to load environment-specific file first, then fallback to .env
+  dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+  
+  console.log(`✅ Environment variables loaded from .env files. NODE_ENV: ${process.env['NODE_ENV']}`);
+} else {
+  console.log(`📁 Using environment variables from deployment platform (no .env files loaded)`);
+  console.log(`✅ Environment variables loaded from system. NODE_ENV: ${process.env['NODE_ENV']}`);
+}
 
-console.log(`✅ Environment variables loaded. NODE_ENV: ${process.env['NODE_ENV']}`);
 console.log(`🎯 Selected environment: ${env}`);
 
 // Helper function to generate CORS origins based on port
@@ -72,8 +84,8 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       credentials: true
     },
     database: {
-      url: process.env['DATABASE_URL'] || ':memory:',
-      type: 'sqlite'
+      url: ':memory:',
+      type: 'in-memory'
     },
     features: {
       enableDebugRoutes: true,
@@ -105,10 +117,10 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       url: process.env['DATABASE_URL'] || (() => {
         throw new Error('DATABASE_URL environment variable is required');
       })(),
-      type: 'sqlite'
+      type: 'supabase'
     },
     features: {
-      enableDebugRoutes: false,
+      enableDebugRoutes: true,
     },
     secret: {
       key: process.env['API_SECRET'] || (() => {

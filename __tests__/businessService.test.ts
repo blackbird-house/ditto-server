@@ -30,6 +30,15 @@ class MockDataService implements UserService {
     return null;
   }
 
+  async getUserByPhone(phone: string): Promise<User | null> {
+    for (const user of this.users.values()) {
+      if (user.phone === phone) {
+        return user;
+      }
+    }
+    return null;
+  }
+
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
   }
