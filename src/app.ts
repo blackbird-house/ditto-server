@@ -8,7 +8,6 @@ import userRoutes from './modules/users/routes';
 import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
 import { opsRoutes } from './modules/ops';
-import { debugRoutes } from './modules/debug';
 import config from './config';
 import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, inputValidationMiddleware, httpsEnforcementMiddleware, loggingMiddleware, errorHandler } from './middleware';
 
@@ -74,11 +73,6 @@ app.use('/', opsRoutes);
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/chats', chatRoutes);
-
-// Debug routes (only loaded if enableDebugRoutes is true)
-if (config.features.enableDebugRoutes) {
-  app.use('/debug', debugRoutes);
-}
 
 // 404 handler for undefined routes
 app.use('*', (_req, res) => {
