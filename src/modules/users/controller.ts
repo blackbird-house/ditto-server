@@ -3,6 +3,51 @@ import { userService } from './service';
 import { CreateUserRequest, CreateUserResponse, PublicUserResponse } from './types';
 import { authService } from '../auth/services/authService';
 
+// Helper function to check if error is a unique constraint violation
+const isUniqueConstraintError = (error: Error): boolean => {
+  return (
+    error.message === 'User with this email already exists' ||
+    // SQLite error messages
+    error.message.includes('UNIQUE constraint failed: users.email') ||
+    error.message.includes('UNIQUE constraint failed: users.phone') ||
+    // Supabase/PostgreSQL error messages
+    error.message.includes('duplicate key value violates unique constraint') ||
+    error.message.includes('users_email_key') ||
+    error.message.includes('users_phone_key')
+  );
+};
+
+// Helper function to validate user data character limits and formats
+const validateUserDataLimits = (userData: Partial<CreateUserRequest>): string[] => {
+  const validationErrors: string[] = [];
+  
+  if (userData.firstName && userData.firstName.length > 50) {
+    validationErrors.push('First name must be 50 characters or less');
+  }
+  
+  if (userData.lastName && userData.lastName.length > 50) {
+    validationErrors.push('Last name must be 50 characters or less');
+  }
+  
+  if (userData.email && userData.email.length > 254) {
+    validationErrors.push('Email must be 254 characters or less');
+  }
+  
+  if (userData.phone) {
+    if (userData.phone.length > 20) {
+      validationErrors.push('Phone number must be 20 characters or less');
+    }
+    
+    // Phone number format validation: only numbers and optional + prefix
+    const phoneRegex = /^\+?[0-9]+$/;
+    if (!phoneRegex.test(userData.phone)) {
+      validationErrors.push('Phone number must contain only numbers and an optional + prefix');
+    }
+  }
+  
+  return validationErrors;
+};
+
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const userData: CreateUserRequest = req.body;
@@ -26,6 +71,18 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    // Character limit validation
+    const validationErrors = validateUserDataLimits(userData);
+    
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Validation failed',
+        details: validationErrors
+      });
+      return;
+    }
+
     const user = await userService.createUser(userData);
 
     // Convert dates to ISO strings for response
@@ -41,11 +98,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
     res.status(201).json(response);
   } catch (error) {
-    if (error instanceof Error && (
-      error.message === 'User with this email already exists' ||
-      error.message.includes('UNIQUE constraint failed: users.email') ||
-      error.message.includes('UNIQUE constraint failed: users.phone')
-    )) {
+    if (error instanceof Error && isUniqueConstraintError(error)) {
       res.status(409).json({
         error: 'Conflict',
         message: 'Resource already exists'
@@ -135,6 +188,18 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
+    // Character limit validation for fields being updated
+    const validationErrors = validateUserDataLimits(userData);
+    
+    if (validationErrors.length > 0) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Validation failed',
+        details: validationErrors
+      });
+      return;
+    }
+
     const updatedUser = await userService.updateUser(userId, userData);
 
     if (!updatedUser) {
@@ -158,7 +223,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
     res.status(200).json(response);
   } catch (error) {
-    if (error instanceof Error && error.message === 'User with this email already exists') {
+    if (error instanceof Error && isUniqueConstraintError(error)) {
       res.status(409).json({
         error: 'Conflict',
         message: 'Resource already exists'
