@@ -15,18 +15,22 @@ const app: Application = express();
 
 // API Documentation (Swagger UI) - MUST be before middleware to avoid authentication
 if (config.features.enableDebugRoutes) {
-  // Load OpenAPI specification
-  const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/openapi-consolidated.yaml'));
-  
-  // Serve OpenAPI spec as JSON
-  app.get('/api-docs', (_req, res) => {
-    res.json(swaggerDocument);
-  });
-  
-  app.use('/docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Ditto Server API Documentation'
-  }) as any);
+  try {
+    // Load OpenAPI specification
+    const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/openapi-consolidated.yaml'));
+    
+    // Serve OpenAPI spec as JSON
+    app.get('/api-docs', (_req, res) => {
+      res.json(swaggerDocument);
+    });
+    
+    app.use('/docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument, {
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Ditto Server API Documentation'
+    }) as any);
+  } catch (error) {
+    console.warn('⚠️  OpenAPI documentation not available - openapi/openapi-consolidated.yaml not found');
+  }
 }
 
 // URL normalization middleware (handles multiple slashes from API clients) - MUST be first
