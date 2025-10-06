@@ -5,6 +5,7 @@ const PORT = config.port;
 
 // Start server
 const server = app.listen(PORT, () => {
+  console.log(`🚀 Server is up and running!`);
   // Only show startup messages in development
   if (config.env === 'development') {
     console.log(`🚀 Ditto Server started in ${config.env} mode`);

@@ -21,12 +21,7 @@ if (env !== 'production') {
   dotenv.config({ path: path.resolve(process.cwd(), '.env') });
   
   console.log(`✅ Environment variables loaded from .env files. NODE_ENV: ${process.env['NODE_ENV']}`);
-} else {
-  console.log(`📁 Using environment variables from deployment platform (no .env files loaded)`);
-  console.log(`✅ Environment variables loaded from system. NODE_ENV: ${process.env['NODE_ENV']}`);
 }
-
-console.log(`🎯 Selected environment: ${env}`);
 
 // Helper function to generate CORS origins based on port
 const getCorsOrigins = (port: number): string[] => {
@@ -34,8 +29,10 @@ const getCorsOrigins = (port: number): string[] => {
   const dynamicOrigins = [
     `http://localhost:${port}`,
     `http://127.0.0.1:${port}`,
-    `http://localhost:${port + 1}`, // For potential frontend on next port
-    `https://ditto-six.vercel.ap`
+    `http://localhost:${port + 1}`,
+    `https://ditto-six.vercel.app`,
+    `https://ditto-git-staging-rici.vercel.app`,
+    `https://ditto-git-develop-rici.vercel.app`,
   ];
   return [...new Set([...baseOrigins, ...dynamicOrigins])];
 };
@@ -106,11 +103,11 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
   });
 
   const getStagingConfig = (): EnvironmentConfig => ({
-    port: parseInt(process.env['PORT'] || '3000', 10),
+    port: parseInt(process.env['PORT'] || '443', 10),
     env: 'staging',
     logLevel: 'info',
     cors: {
-      origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : ['https://ditto-six.vercel.app'],
+      origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'].split(',') : ['https://ditto-six.vercel.app', 'https://ditto-git-staging-rici.vercel.app'],
       credentials: true
     },
     database: {
@@ -138,7 +135,7 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
   });
 
   const getProductionConfig = (): EnvironmentConfig => ({
-    port: parseInt(process.env['PORT'] || '3000', 10),
+    port: parseInt(process.env['PORT'] || '443', 10),
     env: 'production',
     logLevel: 'warn',
     cors: {
