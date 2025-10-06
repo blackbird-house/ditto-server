@@ -443,7 +443,7 @@ export class SupabaseDatabase {
     await this.ensureInitialized();
     
     const { error } = await this.supabase!
-      .from('messages')
+      .from('chat_messages')
       .insert([{
         id: messageData.id,
         chat_id: messageData.chatId,
@@ -462,7 +462,7 @@ export class SupabaseDatabase {
     await this.ensureInitialized();
     
     const { data, error } = await this.supabase!
-      .from('messages')
+      .from('chat_messages')
       .select('*')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: false })
@@ -486,7 +486,7 @@ export class SupabaseDatabase {
     await this.ensureInitialized();
     
     const { data, error } = await this.supabase!
-      .from('messages')
+      .from('chat_messages')
       .select('*')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: false })
