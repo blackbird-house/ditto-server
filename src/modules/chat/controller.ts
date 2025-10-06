@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { chatService } from './service';
 import { CreateChatRequest, SendMessageRequest } from './types';
+import { logError } from '../../utils/logger';
 
 export const createChat = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -40,6 +41,8 @@ export const createChat = async (req: Request, res: Response): Promise<void> => 
       createdAt: chat.createdAt.toISOString()
     });
   } catch (error) {
+    logError('Chat', 'createChat', error, req);
+    
     if (error instanceof Error) {
       if (error.message === 'User not found') {
         res.status(404).json({
@@ -86,6 +89,8 @@ export const getUserChats = async (req: Request, res: Response): Promise<void> =
 
     res.status(200).json(response);
   } catch (error) {
+    logError('Chat', 'getUserChats', error, req);
+    
     if (error instanceof Error && error.message === 'User not found') {
       res.status(404).json({
         error: 'Not Found',
@@ -149,6 +154,8 @@ export const getChatById = async (req: Request, res: Response): Promise<void> =>
 
     res.status(200).json(response);
   } catch (error) {
+    logError('Chat', 'getChatById', error, req);
+    
     if (error instanceof Error) {
       if (error.message === 'User not found') {
         res.status(404).json({
@@ -214,6 +221,8 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
       createdAt: message.createdAt.toISOString()
     });
   } catch (error) {
+    logError('Chat', 'sendMessage', error, req);
+    
     if (error instanceof Error) {
       if (error.message === 'User not found' || error.message === 'Chat not found') {
         res.status(404).json({
@@ -283,6 +292,8 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
 
     res.status(200).json(response);
   } catch (error) {
+    logError('Chat', 'getChatMessages', error, req);
+    
     if (error instanceof Error) {
       if (error.message === 'User not found' || error.message === 'Chat not found') {
         res.status(404).json({

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { authService } from './services/authService';
+import { logError } from '../../utils/logger';
 
 export const sendOtp = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -22,7 +23,7 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
         message: 'Please provide a valid phone number in international format (e.g., +1234567890)'
       });
     } else {
-      console.error('Error sending OTP:', error);
+      logError('Auth', 'sendOtp', error, req);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to send OTP'
@@ -62,7 +63,7 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
         message: 'User not found'
       });
     } else {
-      console.error('Error verifying OTP:', error);
+      logError('Auth', 'verifyOtp', error, req);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to verify OTP'
@@ -97,7 +98,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         message: 'User not found'
       });
     } else {
-      console.error('Error refreshing token:', error);
+      logError('Auth', 'refreshToken', error, req);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to refresh token'

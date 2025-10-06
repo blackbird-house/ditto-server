@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { userService } from './service';
 import { CreateUserRequest, CreateUserResponse, PublicUserResponse } from './types';
 import { authService } from '../auth/services/authService';
+import { logError } from '../../utils/logger';
 
 // Helper function to check if error is a unique constraint violation
 const isUniqueConstraintError = (error: Error): boolean => {
@@ -104,7 +105,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         message: 'Resource already exists'
       });
     } else {
-      console.error('Error creating user:', error);
+      logError('Users', 'createUser', error, req);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create user'
@@ -145,7 +146,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       user: response
     });
   } catch (error) {
-    console.error('Error getting user:', error);
+    logError('Users', 'getUserById', error, req);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to get user'
@@ -229,7 +230,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         message: 'Resource already exists'
       });
     } else {
-      console.error('Error updating user:', error);
+      logError('Users', 'updateUser', error, req);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update user'
@@ -263,7 +264,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json(user);
   } catch (error: any) {
-    console.error('Error getting user profile:', error);
+    logError('Users', 'getMe', error, req);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to get user profile'
