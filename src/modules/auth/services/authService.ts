@@ -5,9 +5,28 @@ import { databaseService } from '../../../database';
 import jwt from 'jsonwebtoken';
 import config from '../../../config';
 
+/**
+ * AUTH SERVICE - OTP BYPASS MODE
+ * 
+ * ⚠️  TEMPORARY BYPASS ACTIVE ⚠️
+ * 
+ * The OTP mechanism has been temporarily disabled. Users can now authenticate
+ * by entering the last 6 digits of their phone number instead of a generated OTP.
+ * 
+ * To re-enable OTP:
+ * 1. Uncomment the original OTP logic in sendOtp() and verifyOtp() methods
+ * 2. Remove the bypass validation logic
+ * 3. Remove this comment block
+ * 
+ * Current behavior:
+ * - sendOtp(): Validates phone number but doesn't send actual OTP
+ * - verifyOtp(): Accepts last 6 digits of phone number as valid code
+ * - Lockout mechanism is still active for security
+ */
+
 export class AuthServiceImpl implements AuthService {
   private otpService: MockOtpService;
-  private otpSessions: Map<string, { otpId: string; attempts: number; maxAttempts: number }> = new Map();
+  // private otpSessions: Map<string, { otpId: string; attempts: number; maxAttempts: number }> = new Map(); // Commented out during OTP bypass
   private lockoutAttempts: Map<string, { attempts: number; lastAttempt: Date; lockedUntil?: Date }> = new Map();
 
   constructor() {
@@ -35,25 +54,39 @@ export class AuthServiceImpl implements AuthService {
       throw new Error('Invalid phone number format');
     }
 
-    try {
-      const { otpId } = await this.otpService.sendOtp(phone);
-      
-      // Track OTP session
-      const sessionKey = `otp_${phone}`;
-      this.otpSessions.set(sessionKey, {
-        otpId,
-        attempts: 1,
-        maxAttempts: 3
-      });
+    // TEMPORARY BYPASS: OTP mechanism is disabled
+    // The sendOtp endpoint is kept functional but doesn't actually send OTPs
+    // Users can authenticate by entering the last 6 digits of their phone number
+    // TODO: Re-enable OTP mechanism when needed
+    
+    // ORIGINAL OTP LOGIC (COMMENTED OUT FOR BYPASS):
+    // try {
+    //   const { otpId } = await this.otpService.sendOtp(phone);
+    //   
+    //   // Track OTP session
+    //   const sessionKey = `otp_${phone}`;
+    //   this.otpSessions.set(sessionKey, {
+    //     otpId,
+    //     attempts: 1,
+    //     maxAttempts: 3
+    //   });
+    //
+    //   // No return value - 204 No Content response
+    // } catch (error) {
+    //   throw new Error('Failed to send OTP');
+    // }
 
-      // No return value - 204 No Content response
-    } catch (error) {
-      throw new Error('Failed to send OTP');
-    }
+    // BYPASS: Just validate phone and return success
+    // No actual OTP is sent, users will use last 6 digits of phone number
+    console.log(`🔐 [OTP BYPASS] Phone: ${phone} | Use last 6 digits: ${phone.slice(-6)}`);
   }
 
   async verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse> {
-    // Check for account lockout
+    // TEMPORARY BYPASS: OTP mechanism is disabled
+    // Users can now authenticate by entering the last 6 digits of their phone number
+    // TODO: Re-enable OTP mechanism when needed
+    
+    // Check for account lockout (keeping this for security)
     const lockoutKey = `lockout_${phone}`;
     const lockoutData = this.lockoutAttempts.get(lockoutKey);
     
@@ -62,63 +95,86 @@ export class AuthServiceImpl implements AuthService {
       throw new Error(`Account temporarily locked. Try again in ${remainingTime} minutes.`);
     }
 
-    const sessionKey = `otp_${phone}`;
-    const session = this.otpSessions.get(sessionKey);
+    // BYPASS: Instead of checking OTP session, validate that the provided OTP matches last 6 digits
+    const expectedOtp = phone.slice(-6);
+    if (otp !== expectedOtp) {
+      // Increment failed attempts and implement lockout
+      const currentAttempts = (lockoutData?.attempts || 0) + 1;
+      const maxAttempts = 5;
+      const lockoutDuration = 15 * 60 * 1000; // 15 minutes
+      
+      if (currentAttempts >= maxAttempts) {
+        const lockedUntil = new Date(Date.now() + lockoutDuration);
+        this.lockoutAttempts.set(lockoutKey, {
+          attempts: currentAttempts,
+          lastAttempt: new Date(),
+          lockedUntil
+        });
+        throw new Error(`Too many failed attempts. Account locked for 15 minutes.`);
+      } else {
+        this.lockoutAttempts.set(lockoutKey, {
+          attempts: currentAttempts,
+          lastAttempt: new Date()
+        });
+      }
+      
+      throw new Error('Invalid code. Please enter the last 6 digits of your phone number.');
+    }
+
+    // ORIGINAL OTP LOGIC (COMMENTED OUT FOR BYPASS):
+    // const sessionKey = `otp_${phone}`;
+    // const session = this.otpSessions.get(sessionKey);
+    // 
+    // if (!session) {
+    //   throw new Error('No OTP session found. Please request a new OTP.');
+    // }
+    //
+    // try {
+    //   const isValid = await this.otpService.verifyOtp(phone, otp, session.otpId);
+    //   
+    //   if (!isValid) {
+    //     // Increment failed attempts and implement lockout
+    //     const currentAttempts = (lockoutData?.attempts || 0) + 1;
+    //     const maxAttempts = 5;
+    //     const lockoutDuration = 15 * 60 * 1000; // 15 minutes
+    //     
+    //     if (currentAttempts >= maxAttempts) {
+    //       const lockedUntil = new Date(Date.now() + lockoutDuration);
+    //       this.lockoutAttempts.set(lockoutKey, {
+    //         attempts: currentAttempts,
+    //         lastAttempt: new Date(),
+    //         lockedUntil
+    //       });
+    //       throw new Error(`Too many failed attempts. Account locked for 15 minutes.`);
+    //     } else {
+    //       this.lockoutAttempts.set(lockoutKey, {
+    //         attempts: currentAttempts,
+    //         lastAttempt: new Date()
+    //       });
+    //     }
+    //     
+    //     throw new Error('Invalid or expired OTP');
+    //   }
+
+    // Code is valid, find user
+    const user = await this.findUserByPhone(phone);
     
-    if (!session) {
-      throw new Error('No OTP session found. Please request a new OTP.');
+    if (!user) {
+      // User not found - return 404 error
+      throw new Error('User not found');
     }
 
-    try {
-      const isValid = await this.otpService.verifyOtp(phone, otp, session.otpId);
-      
-      if (!isValid) {
-        // Increment failed attempts and implement lockout
-        const currentAttempts = (lockoutData?.attempts || 0) + 1;
-        const maxAttempts = 5;
-        const lockoutDuration = 15 * 60 * 1000; // 15 minutes
-        
-        if (currentAttempts >= maxAttempts) {
-          const lockedUntil = new Date(Date.now() + lockoutDuration);
-          this.lockoutAttempts.set(lockoutKey, {
-            attempts: currentAttempts,
-            lastAttempt: new Date(),
-            lockedUntil
-          });
-          throw new Error(`Too many failed attempts. Account locked for 15 minutes.`);
-        } else {
-          this.lockoutAttempts.set(lockoutKey, {
-            attempts: currentAttempts,
-            lastAttempt: new Date()
-          });
-        }
-        
-        throw new Error('Invalid or expired OTP');
-      }
+    // Generate JWT token and refresh token
+    const token = this.generateToken(user.id, phone);
+    const refreshToken = this.generateRefreshToken(user.id, phone);
 
-      // OTP is valid, find user
-      const user = await this.findUserByPhone(phone);
-      
-      if (!user) {
-        // User not found - return 404 error
-        throw new Error('User not found');
-      }
+    // Clean up lockout attempts (no OTP session to clean up in bypass mode)
+    this.lockoutAttempts.delete(lockoutKey);
 
-      // Generate JWT token and refresh token
-      const token = this.generateToken(user.id, phone);
-      const refreshToken = this.generateRefreshToken(user.id, phone);
-
-      // Clean up OTP session and reset lockout attempts
-      this.otpSessions.delete(sessionKey);
-      this.lockoutAttempts.delete(lockoutKey);
-
-      return {
-        token,
-        refreshToken
-      };
-    } catch (error) {
-      throw error;
-    }
+    return {
+      token,
+      refreshToken
+    };
   }
 
   async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {

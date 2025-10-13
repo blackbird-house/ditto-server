@@ -48,15 +48,15 @@ describe('Authentication Module', () => {
       expect(response.body).toHaveProperty('message', 'Phone number and OTP are required');
     });
 
-    it('should return 400 for no OTP session', async () => {
+    it('should return 404 for non-existent user (OTP bypass mode)', async () => {
       const response = await request(app)
         .post('/auth/verify-otp')
         .set('X-API-Secret', 'test-secret-key-67890')
         .send({ phone: '+9999999999', otp: '999999' })
-        .expect(400);
+        .expect(404);
 
-      expect(response.body).toHaveProperty('error', 'No OTP session');
-      expect(response.body).toHaveProperty('message', 'No OTP session found. Please request a new OTP.');
+      expect(response.body).toHaveProperty('error', 'Not found');
+      expect(response.body).toHaveProperty('message', 'User not found');
     });
   });
 
@@ -174,9 +174,9 @@ describe('Authentication Module', () => {
       expect(verifyOtpResponse.body.token).toBeTruthy();
     });
 
-    it('should fail with incorrect OTP', async () => {
+    it('should fail with incorrect code (OTP bypass mode)', async () => {
       const testPhone = `+1234567${Math.floor(Math.random() * 1000)}`;
-      const incorrectOtp = '123456'; // Wrong OTP
+      const incorrectOtp = '123456'; // Wrong code (not last 6 digits)
 
       // Step 1: Create a user first
       await request(app)
@@ -190,14 +190,14 @@ describe('Authentication Module', () => {
         })
         .expect(201);
 
-      // Step 2: Send OTP
+      // Step 2: Send OTP (bypassed, but endpoint still works)
       await request(app)
         .post('/auth/send-otp')
         .set('X-API-Secret', 'test-secret-key-67890')
         .send({ phone: testPhone })
         .expect(204);
 
-      // Step 3: Try to verify with incorrect OTP
+      // Step 3: Try to verify with incorrect code (should fail in bypass mode)
       const verifyOtpResponse = await request(app)
         .post('/auth/verify-otp')
         .set('X-API-Secret', 'test-secret-key-67890')
@@ -205,7 +205,7 @@ describe('Authentication Module', () => {
         .expect(400);
 
       expect(verifyOtpResponse.body).toHaveProperty('error', 'Invalid OTP');
-      expect(verifyOtpResponse.body).toHaveProperty('message', 'Invalid or expired OTP');
+      expect(verifyOtpResponse.body).toHaveProperty('message', 'Invalid code. Please enter the last 6 digits of your phone number.');
     });
 
     it('should return 404 when user is not found', async () => {

@@ -52,7 +52,7 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
         error: 'No OTP session',
         message: error.message
       });
-    } else if (error.message === 'Invalid or expired OTP') {
+    } else if (error.message === 'Invalid or expired OTP' || error.message === 'Invalid code. Please enter the last 6 digits of your phone number.') {
       res.status(400).json({
         error: 'Invalid OTP',
         message: error.message
