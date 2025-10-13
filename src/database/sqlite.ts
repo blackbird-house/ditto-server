@@ -271,7 +271,7 @@ export class SQLiteDatabase {
     content: string;
   }): Promise<void> {
     await this.run(
-      `INSERT INTO messages (id, chatId, senderId, content) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO chat_messages (id, chatId, senderId, content) VALUES (?, ?, ?, ?)`,
       [messageData.id, messageData.chatId, messageData.senderId, messageData.content]
     );
   }
