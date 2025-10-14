@@ -51,8 +51,9 @@ export interface DatabaseService {
     senderId: string;
     content: string;
   }): Promise<void>;
-  getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]>;
-  getLastMessageForChat(chatId: string): Promise<any>;
+  getMessages(chatId: string, limit?: number, offset?: number): Promise<any[]>;
+  getMessagesBefore(chatId: string, beforeMessageId: string, limit?: number): Promise<any[]>;
+  getLastMessage(chatId: string): Promise<any>;
 }
 
 class DatabaseServiceWrapper implements DatabaseService {
@@ -278,21 +279,31 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getChatMessages(chatId: string, limit?: number, offset?: number): Promise<any[]> {
+  async getMessages(chatId: string, limit?: number, offset?: number): Promise<any[]> {
     if (this.sqliteDb) {
-      return this.sqliteDb.getChatMessages(chatId, limit, offset);
+      return this.sqliteDb.getMessages(chatId, limit, offset);
     } else if (this.supabaseDb) {
-      return this.supabaseDb.getChatMessages(chatId, limit, offset);
+      return this.supabaseDb.getMessages(chatId, limit, offset);
     } else {
       throw new Error('Database not configured');
     }
   }
 
-  async getLastMessageForChat(chatId: string): Promise<any> {
+  async getMessagesBefore(chatId: string, beforeMessageId: string, limit?: number): Promise<any[]> {
     if (this.sqliteDb) {
-      return this.sqliteDb.getLastMessageForChat(chatId);
+      return this.sqliteDb.getMessagesBefore(chatId, beforeMessageId, limit);
     } else if (this.supabaseDb) {
-      return this.supabaseDb.getLastMessageForChat(chatId);
+      return this.supabaseDb.getMessagesBefore(chatId, beforeMessageId, limit);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getLastMessage(chatId: string): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getLastMessage(chatId);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getLastMessage(chatId);
     } else {
       throw new Error('Database not configured');
     }

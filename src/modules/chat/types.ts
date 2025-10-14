@@ -79,4 +79,5 @@ export interface ChatService {
   getChatById(userId: string, chatId: string): Promise<ChatWithMessages | null>;
   sendMessage(userId: string, chatId: string, content: string): Promise<Message>;
   getChatMessages(userId: string, chatId: string, limit?: number, offset?: number): Promise<Message[]>;
+  getMessagesBefore(userId: string, chatId: string, beforeMessageId: string, limit?: number): Promise<Message[]>;
 }

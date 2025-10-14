@@ -276,14 +276,25 @@ export class SQLiteDatabase {
     );
   }
 
-  async getChatMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
+  async getMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
     return this.all(
       'SELECT * FROM chat_messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?',
       [chatId, limit, offset]
     );
   }
 
-  async getLastMessageForChat(chatId: string): Promise<any> {
+  async getMessagesBefore(chatId: string, beforeMessageId: string, limit: number = 20): Promise<any[]> {
+    return this.all(
+      `SELECT * FROM chat_messages 
+       WHERE chatId = ? AND createdAt < (
+         SELECT createdAt FROM chat_messages WHERE id = ?
+       ) 
+       ORDER BY createdAt DESC LIMIT ?`,
+      [chatId, beforeMessageId, limit]
+    );
+  }
+
+  async getLastMessage(chatId: string): Promise<any> {
     return this.get(
       'SELECT * FROM chat_messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT 1',
       [chatId]

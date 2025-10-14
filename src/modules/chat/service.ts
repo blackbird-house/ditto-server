@@ -57,7 +57,7 @@ class DatabaseChatService implements ChatService {
       }
 
       // Get last message for this chat
-      const lastMessage = await databaseService.getLastMessageForChat(chat.id);
+      const lastMessage = await databaseService.getLastMessage(chat.id);
 
       const chatResponse: ChatListResponse = {
         id: chat.id,
@@ -112,7 +112,7 @@ class DatabaseChatService implements ChatService {
     }
 
     // Get all messages for this chat
-    const messages = await databaseService.getChatMessages(chatId);
+    const messages = await databaseService.getMessages(chatId);
     const formattedMessages: Message[] = messages.map(msg => ({
       id: msg.id,
       chatId: msg.chatId,
@@ -209,7 +209,53 @@ class DatabaseChatService implements ChatService {
       throw new Error('Invalid offset: must be 0 or greater');
     }
 
-    const messages = await databaseService.getChatMessages(chatId, limit, offset);
+    const messages = await databaseService.getMessages(chatId, limit, offset);
+    return messages.map(msg => ({
+      id: msg.id,
+      chatId: msg.chatId,
+      senderId: msg.senderId,
+      content: msg.content,
+      createdAt: new Date(msg.createdAt),
+      updatedAt: new Date(msg.updatedAt)
+    }));
+  }
+
+  async getMessagesBefore(userId: string, chatId: string, beforeMessageId: string, limit: number = 20): Promise<Message[]> {
+    // Validate user exists
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Validate chat exists and user is a participant
+    const chat = await databaseService.getChatById(chatId);
+    if (!chat) {
+      throw new Error('Chat not found');
+    }
+
+    // Privacy check: user must be a user in this chat
+    if (chat.user1Id !== userId && chat.user2Id !== userId) {
+      throw new Error('Access denied: You can only view messages from your own chats');
+    }
+
+    // Validate pagination parameters
+    if (limit < 1 || limit > 50) {
+      throw new Error('Invalid limit: must be between 1 and 50');
+    }
+
+    // Validate that the beforeMessageId exists in this chat
+    const beforeMessage = await databaseService.getMessages(chatId, 1, 0);
+    const messageExists = beforeMessage.some(msg => msg.id === beforeMessageId);
+    if (!messageExists) {
+      // Check if the message exists at all by trying to get messages before it
+      try {
+        await databaseService.getMessagesBefore(chatId, beforeMessageId, 1);
+      } catch (error) {
+        throw new Error('Message not found');
+      }
+    }
+
+    const messages = await databaseService.getMessagesBefore(chatId, beforeMessageId, limit);
     return messages.map(msg => ({
       id: msg.id,
       chatId: msg.chatId,

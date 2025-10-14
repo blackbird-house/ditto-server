@@ -280,8 +280,16 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
     // Parse pagination parameters
     const limit = parseInt(req.query['limit'] as string) || 20;
     const offset = parseInt(req.query['offset'] as string) || 0;
+    const beforeMessageId = req.query['before'] as string;
 
-    const messages = await chatService.getChatMessages(userId, chatId, limit, offset);
+    let messages;
+    if (beforeMessageId) {
+      // Use cursor-based pagination with beforeMessageId
+      messages = await chatService.getMessagesBefore(userId, chatId, beforeMessageId, limit);
+    } else {
+      // Use offset-based pagination (existing behavior)
+      messages = await chatService.getChatMessages(userId, chatId, limit, offset);
+    }
 
     const response = messages.map(message => ({
       id: message.id,
@@ -295,7 +303,7 @@ export const getChatMessages = async (req: Request, res: Response): Promise<void
     logError('Chat', 'getChatMessages', error, req);
     
     if (error instanceof Error) {
-      if (error.message === 'User not found' || error.message === 'Chat not found') {
+      if (error.message === 'User not found' || error.message === 'Chat not found' || error.message === 'Message not found') {
         res.status(404).json({
           error: 'Not Found',
           message: 'Resource not found'

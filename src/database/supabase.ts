@@ -458,7 +458,7 @@ export class SupabaseDatabase {
     }
   }
 
-  async getChatMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
+  async getMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
     await this.ensureInitialized();
     
     const { data, error } = await this.supabase!
@@ -482,7 +482,45 @@ export class SupabaseDatabase {
     })) || [];
   }
 
-  async getLastMessageForChat(chatId: string): Promise<any> {
+  async getMessagesBefore(chatId: string, beforeMessageId: string, limit: number = 20): Promise<any[]> {
+    await this.ensureInitialized();
+    
+    // First, get the timestamp of the message we want to get messages before
+    const { data: beforeMessage, error: beforeError } = await this.supabase!
+      .from('chat_messages')
+      .select('created_at')
+      .eq('id', beforeMessageId)
+      .eq('chat_id', chatId)
+      .single();
+
+    if (beforeError || !beforeMessage) {
+      throw new Error(`Failed to find message with ID ${beforeMessageId}`);
+    }
+
+    // Then get messages older than that timestamp
+    const { data, error } = await this.supabase!
+      .from('chat_messages')
+      .select('*')
+      .eq('chat_id', chatId)
+      .lt('created_at', beforeMessage.created_at)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw new Error(`Failed to get messages before ${beforeMessageId}: ${error.message}`);
+    }
+
+    return data?.map(message => ({
+      id: message.id,
+      chatId: message.chat_id,
+      senderId: message.sender_id,
+      content: message.content,
+      createdAt: message.created_at,
+      updatedAt: message.updated_at
+    })) || [];
+  }
+
+  async getLastMessage(chatId: string): Promise<any> {
     await this.ensureInitialized();
     
     const { data, error } = await this.supabase!
