@@ -32,6 +32,7 @@ export const logRequest = (module: string, operation: string, req: Request, addi
       operation,
       method: req.method,
       path: req.path,
+      query: Object.keys(req.query).length > 0 ? req.query : undefined,
       timestamp: new Date().toISOString(),
       userAgent: req.get('User-Agent')?.substring(0, 100) || 'unknown',
       contentType: req.get('Content-Type') || 'none',
@@ -44,6 +45,7 @@ export const logRequest = (module: string, operation: string, req: Request, addi
     console.log(`🔍 ${module} ${operation} Request:`, {
       method: req.method,
       path: req.path,
+      query: Object.keys(req.query).length > 0 ? req.query : undefined,
       ...additionalData
     });
   }
