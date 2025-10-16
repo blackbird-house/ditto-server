@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { authService } from './services/authService';
 import { logError } from '../../utils/logger';
+import { SocialAuthRequest } from './types';
 
 export const sendOtp = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -102,6 +103,60 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to refresh token'
+      });
+    }
+  }
+};
+
+export const socialAuth = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { provider, token }: SocialAuthRequest = req.body;
+
+    if (!provider || !token) {
+      res.status(400).json({
+        error: 'Bad request',
+        message: 'Provider and token are required'
+      });
+      return;
+    }
+
+    if (provider !== 'google') {
+      res.status(400).json({
+        error: 'Bad request',
+        message: 'Only Google Sign-In is currently supported'
+      });
+      return;
+    }
+
+    const result = await authService.authenticateSocial(provider, token);
+    
+    res.status(200).json(result);
+  } catch (error: any) {
+    if (error.message === 'Invalid Google token') {
+      res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid Google authentication token'
+      });
+    } else if (error.message === 'Apple Sign-In is not currently supported. Please use Google Sign-In.') {
+      res.status(400).json({
+        error: 'Bad request',
+        message: 'Apple Sign-In is not currently supported. Please use Google Sign-In.'
+      });
+    } else if (error.message === 'Unsupported authentication provider. Only Google Sign-In is supported.') {
+      res.status(400).json({
+        error: 'Bad request',
+        message: 'Unsupported authentication provider. Only Google Sign-In is supported.'
+      });
+    } else if (error.message === 'Social authentication failed') {
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Social authentication failed'
+      });
+    } else {
+      logError('Auth', 'socialAuth', error, req);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to authenticate with social provider'
       });
     }
   }

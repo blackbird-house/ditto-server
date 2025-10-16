@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { sendOtp, verifyOtp, refreshToken } from './controller';
+import { sendOtp, verifyOtp, refreshToken, socialAuth } from './controller';
 
 const router = Router();
 
@@ -11,5 +11,8 @@ router.post('/verify-otp', verifyOtp);
 
 // POST /auth/refresh-token - Refresh authentication token using refresh token
 router.post('/refresh-token', refreshToken);
+
+// POST /auth/social - Authenticate with social providers (Google, Apple)
+router.post('/social', socialAuth);
 
 export default router;

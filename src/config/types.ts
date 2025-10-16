@@ -22,6 +22,17 @@ export interface EnvironmentConfig {
     expiresIn: string;
     refreshExpiresIn: string;
   };
+  socialAuth: {
+    google: {
+      clientId: string;
+    };
+    apple?: {
+      clientId: string;
+      teamId: string;
+      keyId: string;
+      privateKey: string;
+    };
+  };
 }
 
 export type Environment = 'development' | 'staging' | 'production' | 'test';

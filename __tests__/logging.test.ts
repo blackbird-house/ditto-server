@@ -72,4 +72,57 @@ describe('Logging Middleware', () => {
       expect(mockNext).toHaveBeenCalled();
     });
   });
+
+  describe('query parameter logging', () => {
+    it('should skip logging in test environment', () => {
+      const { loggingMiddleware } = require('../src/middleware/logging');
+      
+      const reqWithQuery = {
+        method: 'GET',
+        path: '/users',
+        query: { page: '1', limit: '10', search: 'john' },
+        ip: '127.0.0.1'
+      };
+      
+      loggingMiddleware(reqWithQuery as unknown as Request, mockRes as Response, mockNext);
+      
+      // In test environment, logging is skipped, so console.log should not be called
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should call next() even when logging is skipped', () => {
+      const { loggingMiddleware } = require('../src/middleware/logging');
+      
+      const reqWithoutQuery = {
+        method: 'GET',
+        path: '/users',
+        query: {},
+        ip: '127.0.0.1'
+      };
+      
+      loggingMiddleware(reqWithoutQuery as Request, mockRes as Response, mockNext);
+      
+      // In test environment, logging is skipped
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalled();
+    });
+
+    it('should handle different request types without logging in test', () => {
+      const { loggingMiddleware } = require('../src/middleware/logging');
+      
+      const reqWithSpecialChars = {
+        method: 'GET',
+        path: '/search',
+        query: { q: 'hello world', filter: 'active&pending' },
+        ip: '127.0.0.1'
+      };
+      
+      loggingMiddleware(reqWithSpecialChars as unknown as Request, mockRes as Response, mockNext);
+      
+      // In test environment, logging is skipped
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalled();
+    });
+  });
 });

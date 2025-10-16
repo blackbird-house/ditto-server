@@ -29,6 +29,60 @@ describe('User Module', () => {
       expect(response.body).toHaveProperty('updatedAt');
     });
 
+    it('should create a new user with social auth fields', async () => {
+      const userData = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane.smith@example.com',
+        authProvider: 'google',
+        socialId: 'google_123456789',
+        profilePictureUrl: 'https://example.com/profile.jpg'
+      };
+
+      const response = await request(app)
+        .post('/users')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty('firstName', 'Jane');
+      expect(response.body).toHaveProperty('lastName', 'Smith');
+      expect(response.body).toHaveProperty('email', 'jane.smith@example.com');
+      expect(response.body).toHaveProperty('authProvider', 'google');
+      expect(response.body).toHaveProperty('socialId', 'google_123456789');
+      expect(response.body).toHaveProperty('profilePictureUrl', 'https://example.com/profile.jpg');
+      expect(response.body).toHaveProperty('createdAt');
+      expect(response.body).toHaveProperty('updatedAt');
+    });
+
+    it('should create a new user without phone (Google social auth only)', async () => {
+      const userData = {
+        firstName: 'Google',
+        lastName: 'User',
+        email: 'google.user@example.com',
+        authProvider: 'google',
+        socialId: 'google_987654321'
+      };
+
+      const response = await request(app)
+        .post('/users')
+        .set('X-API-Secret', 'test-secret-key-67890')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty('firstName', 'Google');
+      expect(response.body).toHaveProperty('lastName', 'User');
+      expect(response.body).toHaveProperty('email', 'google.user@example.com');
+      expect(response.body).toHaveProperty('authProvider', 'google');
+      expect(response.body).toHaveProperty('socialId', 'google_987654321');
+      expect(response.body).not.toHaveProperty('phone');
+      expect(response.body).not.toHaveProperty('profilePictureUrl');
+      expect(response.body).toHaveProperty('createdAt');
+      expect(response.body).toHaveProperty('updatedAt');
+    });
+
     it('should return 400 for missing required fields', async () => {
       const userData = {
         firstName: 'John',

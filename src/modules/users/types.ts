@@ -3,7 +3,10 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string;
+  authProvider?: string;
+  socialId?: string;
+  profilePictureUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,7 +15,10 @@ export interface CreateUserRequest {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string;
+  authProvider?: string;
+  socialId?: string;
+  profilePictureUrl?: string;
 }
 
 export interface CreateUserResponse {
@@ -20,7 +26,10 @@ export interface CreateUserResponse {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string;
+  authProvider?: string;
+  socialId?: string;
+  profilePictureUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

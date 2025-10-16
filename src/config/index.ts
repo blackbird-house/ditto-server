@@ -69,6 +69,14 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       })(),
       expiresIn: '3m',
       refreshExpiresIn: '30d'
+    },
+    socialAuth: {
+      google: {
+        clientId: process.env['GOOGLE_CLIENT_ID'] || (() => {
+          throw new Error('GOOGLE_CLIENT_ID environment variable is required');
+        })()
+      }
+      // Apple Sign-In configuration is optional and can be added later
     }
   });
 
@@ -99,6 +107,17 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       })(),
       expiresIn: '3m',
       refreshExpiresIn: '30d'
+    },
+    socialAuth: {
+      google: {
+        clientId: process.env['GOOGLE_CLIENT_ID'] || 'test-google-client-id'
+      },
+      apple: {
+        clientId: process.env['APPLE_CLIENT_ID'] || 'test-apple-client-id',
+        teamId: process.env['APPLE_TEAM_ID'] || 'test-team-id',
+        keyId: process.env['APPLE_KEY_ID'] || 'test-key-id',
+        privateKey: process.env['APPLE_PRIVATE_KEY'] || 'test-private-key'
+      }
     }
   });
 
@@ -131,6 +150,14 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       })(),
       expiresIn: '3m',
       refreshExpiresIn: '30d'
+    },
+    socialAuth: {
+      google: {
+        clientId: process.env['GOOGLE_CLIENT_ID'] || (() => {
+          throw new Error('GOOGLE_CLIENT_ID environment variable is required');
+        })()
+      }
+      // Apple Sign-In configuration is optional and can be added later
     }
   });
 
@@ -163,6 +190,14 @@ const getConfig = (environment: Environment): EnvironmentConfig => {
       })(),
       expiresIn: '3m',
       refreshExpiresIn: '30d'
+    },
+    socialAuth: {
+      google: {
+        clientId: process.env['GOOGLE_CLIENT_ID'] || (() => {
+          throw new Error('GOOGLE_CLIENT_ID environment variable is required');
+        })()
+      }
+      // Apple Sign-In configuration is optional and can be added later
     }
   });
 

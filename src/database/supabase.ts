@@ -74,13 +74,35 @@ export class SupabaseDatabase {
     }
   }
 
+  // Database operations (for compatibility with SQLite interface)
+  async run(_sql: string, _params: any[] = []): Promise<any> {
+    // Supabase doesn't support raw SQL in the same way
+    // This is a placeholder for migration compatibility
+    throw new Error('Raw SQL operations not supported in Supabase. Use specific methods instead.');
+  }
+
+  async get(_sql: string, _params: any[] = []): Promise<any> {
+    // Supabase doesn't support raw SQL in the same way
+    // This is a placeholder for migration compatibility
+    throw new Error('Raw SQL operations not supported in Supabase. Use specific methods instead.');
+  }
+
+  async all(_sql: string, _params: any[] = []): Promise<any[]> {
+    // Supabase doesn't support raw SQL in the same way
+    // This is a placeholder for migration compatibility
+    throw new Error('Raw SQL operations not supported in Supabase. Use specific methods instead.');
+  }
+
   // User operations
   async createUser(userData: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phone?: string;
+    authProvider?: string;
+    socialId?: string;
+    profilePictureUrl?: string;
   }): Promise<void> {
     await this.ensureInitialized();
     
@@ -92,6 +114,9 @@ export class SupabaseDatabase {
         last_name: userData.lastName,
         email: userData.email,
         phone: userData.phone,
+        auth_provider: userData.authProvider,
+        social_id: userData.socialId,
+        profile_picture_url: userData.profilePictureUrl,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }]);
@@ -177,6 +202,70 @@ export class SupabaseDatabase {
         lastName: data.last_name,
         email: data.email,
         phone: data.phone,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+    }
+
+    return null;
+  }
+
+  async getUserBySocialId(socialId: string, authProvider: string): Promise<any> {
+    await this.ensureInitialized();
+    
+    const { data, error } = await this.supabase!
+      .from('users')
+      .select('*')
+      .eq('social_id', socialId)
+      .eq('auth_provider', authProvider)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to get user by social ID: ${error.message}`);
+    }
+
+    if (data) {
+      return {
+        id: data.id,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        email: data.email,
+        phone: data.phone,
+        authProvider: data.auth_provider,
+        socialId: data.social_id,
+        profilePictureUrl: data.profile_picture_url,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+    }
+
+    return null;
+  }
+
+  async getUserByEmailAndProvider(email: string, authProvider: string): Promise<any> {
+    await this.ensureInitialized();
+    
+    const { data, error } = await this.supabase!
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('auth_provider', authProvider)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to get user by email and provider: ${error.message}`);
+    }
+
+    if (data) {
+      return {
+        id: data.id,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        email: data.email,
+        phone: data.phone,
+        authProvider: data.auth_provider,
+        socialId: data.social_id,
+        profilePictureUrl: data.profile_picture_url,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };

@@ -46,6 +46,32 @@ export interface OtpService {
   verifyOtp(phone: string, otp: string, otpId: string): Promise<boolean>;
 }
 
+export interface SocialAuthRequest {
+  provider: 'google' | 'apple';
+  token: string;
+}
+
+export interface SocialAuthResponse {
+  token: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    authProvider: string;
+    profilePictureUrl?: string;
+  };
+}
+
+export interface SocialUserInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profilePictureUrl?: string;
+}
+
 export interface AuthService {
   sendOtp(phone: string): Promise<void>;
   verifyOtp(phone: string, otp: string): Promise<VerifyOtpResponse>;
@@ -54,5 +80,6 @@ export interface AuthService {
   generateRefreshToken(userId: string, phone: string): string;
   verifyToken(token: string): AuthToken | null;
   verifyRefreshToken(refreshToken: string): AuthToken | null;
-  getMe(userId: string): Promise<{ id: string; phone: string; firstName?: string; lastName?: string; email?: string; createdAt: string; updatedAt: string } | null>;
+  getMe(userId: string): Promise<{ id: string; phone?: string; firstName?: string; lastName?: string; email?: string; authProvider?: string; createdAt: string; updatedAt: string } | null>;
+  authenticateSocial(provider: 'google' | 'apple', token: string): Promise<SocialAuthResponse>;
 }

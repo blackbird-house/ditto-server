@@ -1,9 +1,11 @@
-import { AuthService, VerifyOtpResponse, AuthToken, RefreshTokenResponse } from '../types';
+import { AuthService, VerifyOtpResponse, AuthToken, RefreshTokenResponse, SocialAuthResponse } from '../types';
 import { MockOtpService } from './mockOtpService';
+import { socialAuthService } from './socialAuthService';
 import { userService } from '../../users/service';
 import { databaseService } from '../../../database';
 import jwt from 'jsonwebtoken';
 import config from '../../../config';
+import { randomUUID } from 'crypto';
 
 /**
  * AUTH SERVICE - OTP BYPASS MODE
@@ -282,7 +284,7 @@ export class AuthServiceImpl implements AuthService {
     return phoneRegex.test(phone);
   }
 
-  async getMe(userId: string): Promise<{ id: string; phone: string; firstName?: string; lastName?: string; email?: string; createdAt: string; updatedAt: string } | null> {
+  async getMe(userId: string): Promise<{ id: string; phone?: string; firstName?: string; lastName?: string; email?: string; authProvider?: string; createdAt: string; updatedAt: string } | null> {
     try {
       const user = await userService.getUserById(userId);
       if (!user) {
@@ -291,10 +293,11 @@ export class AuthServiceImpl implements AuthService {
 
       return {
         id: user.id,
-        phone: user.phone,
+        ...(user.phone && { phone: user.phone }),
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        ...(user.authProvider && { authProvider: user.authProvider }),
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString()
       };
@@ -306,6 +309,63 @@ export class AuthServiceImpl implements AuthService {
   private async findUserByPhone(phone: string) {
     // Find user by phone number using database service
     return await databaseService.getUserByPhone(phone);
+  }
+
+  async authenticateSocial(provider: 'google' | 'apple', token: string): Promise<SocialAuthResponse> {
+    try {
+      // Verify the social token and get user info
+      const socialUserInfo = await socialAuthService.verifySocialToken(provider, token);
+      
+      // Check if user already exists by social ID
+      let user = await databaseService.getUserBySocialId(socialUserInfo.id, provider);
+      
+      if (!user) {
+        // Check if user exists by email with same provider
+        user = await databaseService.getUserByEmailAndProvider(socialUserInfo.email, provider);
+        
+        if (!user) {
+          // Create new user
+          const userId = randomUUID();
+          await databaseService.createUser({
+            id: userId,
+            firstName: socialUserInfo.firstName,
+            lastName: socialUserInfo.lastName,
+            email: socialUserInfo.email,
+            authProvider: provider,
+            socialId: socialUserInfo.id,
+            ...(socialUserInfo.profilePictureUrl && { profilePictureUrl: socialUserInfo.profilePictureUrl })
+          });
+          
+          user = await databaseService.getUserById(userId);
+        }
+      }
+
+      if (!user) {
+        throw new Error('Failed to create or retrieve user');
+      }
+
+      // Generate tokens (use email as identifier for social auth users)
+      const authToken = this.generateToken(user.id, user.email);
+      const refreshToken = this.generateRefreshToken(user.id, user.email);
+
+      return {
+        token: authToken,
+        refreshToken: refreshToken,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          authProvider: user.authProvider,
+          ...(user.profilePictureUrl && { profilePictureUrl: user.profilePictureUrl })
+        }
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Social authentication failed');
+    }
   }
 }
 

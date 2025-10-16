@@ -3,17 +3,27 @@ import { SQLiteDatabase, getDatabase } from './sqlite';
 import { SupabaseDatabase } from './supabase';
 
 export interface DatabaseService {
+  // Database operations
+  run(sql: string, params?: any[]): Promise<any>;
+  get(sql: string, params?: any[]): Promise<any>;
+  all(sql: string, params?: any[]): Promise<any[]>;
+  
   // User operations
   createUser(userData: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phone?: string;
+    authProvider?: string;
+    socialId?: string;
+    profilePictureUrl?: string;
   }): Promise<void>;
   getUserById(id: string): Promise<any>;
   getUserByEmail(email: string): Promise<any>;
   getUserByPhone(phone: string): Promise<any>;
+  getUserBySocialId(socialId: string, authProvider: string): Promise<any>;
+  getUserByEmailAndProvider(email: string, authProvider: string): Promise<any>;
   updateUser(id: string, updates: Partial<{
     firstName: string;
     lastName: string;
@@ -90,13 +100,44 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
+  // Database operations
+  async run(sql: string, params: any[] = []): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.run(sql, params);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.run(sql, params);
+    }
+    throw new Error('No database connection available');
+  }
+
+  async get(sql: string, params: any[] = []): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.get(sql, params);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.get(sql, params);
+    }
+    throw new Error('No database connection available');
+  }
+
+  async all(sql: string, params: any[] = []): Promise<any[]> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.all(sql, params);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.all(sql, params);
+    }
+    throw new Error('No database connection available');
+  }
+
   // User operations
   async createUser(userData: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phone?: string;
+    authProvider?: string;
+    socialId?: string;
+    profilePictureUrl?: string;
   }): Promise<void> {
     if (this.sqliteDb) {
       await this.sqliteDb.createUser(userData);
@@ -132,6 +173,26 @@ class DatabaseServiceWrapper implements DatabaseService {
       return this.sqliteDb.getUserByPhone(phone);
     } else if (this.supabaseDb) {
       return this.supabaseDb.getUserByPhone(phone);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getUserBySocialId(socialId: string, authProvider: string): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getUserBySocialId(socialId, authProvider);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getUserBySocialId(socialId, authProvider);
+    } else {
+      throw new Error('Database not configured');
+    }
+  }
+
+  async getUserByEmailAndProvider(email: string, authProvider: string): Promise<any> {
+    if (this.sqliteDb) {
+      return this.sqliteDb.getUserByEmailAndProvider(email, authProvider);
+    } else if (this.supabaseDb) {
+      return this.supabaseDb.getUserByEmailAndProvider(email, authProvider);
     } else {
       throw new Error('Database not configured');
     }

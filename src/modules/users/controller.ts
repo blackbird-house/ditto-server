@@ -54,10 +54,19 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     const userData: CreateUserRequest = req.body;
 
     // Validate required fields
-    if (!userData.firstName || !userData.lastName || !userData.email || !userData.phone) {
+    if (!userData.firstName || !userData.lastName || !userData.email) {
       res.status(400).json({
         error: 'Bad Request',
         message: 'Invalid request data'
+      });
+      return;
+    }
+
+    // For social auth users, either phone or authProvider+socialId must be provided
+    if (!userData.phone && (!userData.authProvider || !userData.socialId)) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Either phone number or social authentication (authProvider + socialId) is required'
       });
       return;
     }
@@ -92,7 +101,10 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      phone: user.phone,
+      ...(user.phone && { phone: user.phone }),
+      ...(user.authProvider && { authProvider: user.authProvider }),
+      ...(user.socialId && { socialId: user.socialId }),
+      ...(user.profilePictureUrl && { profilePictureUrl: user.profilePictureUrl }),
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };
@@ -217,7 +229,10 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       firstName: updatedUser.firstName,
       lastName: updatedUser.lastName,
       email: updatedUser.email,
-      phone: updatedUser.phone,
+      ...(updatedUser.phone && { phone: updatedUser.phone }),
+      ...(updatedUser.authProvider && { authProvider: updatedUser.authProvider }),
+      ...(updatedUser.socialId && { socialId: updatedUser.socialId }),
+      ...(updatedUser.profilePictureUrl && { profilePictureUrl: updatedUser.profilePictureUrl }),
       createdAt: updatedUser.createdAt.toISOString(),
       updatedAt: updatedUser.updatedAt.toISOString(),
     };

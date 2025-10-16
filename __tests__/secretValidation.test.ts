@@ -6,27 +6,21 @@ describe('Secret Validation Middleware', () => {
   const invalidSecret = 'invalid-secret';
 
   describe('GET /ping', () => {
-    it('should return 401 when secret header is missing', async () => {
+    it('should return 204 when secret header is missing (ping is excluded from auth)', async () => {
       const response = await request(app)
         .get('/ping');
 
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
     });
 
-    it('should return 401 when secret header is invalid', async () => {
+    it('should return 204 when secret header is invalid (ping is excluded from auth)', async () => {
       const response = await request(app)
         .get('/ping')
         .set('X-API-Secret', invalidSecret);
 
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
     });
 
     it('should return 204 when secret header is valid', async () => {

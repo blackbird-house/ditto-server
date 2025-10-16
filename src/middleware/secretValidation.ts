@@ -7,8 +7,8 @@ import config from '../config';
  * Excludes docs and debug endpoints from secret validation
  */
 export const secretValidationMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  // Skip secret validation for docs and debug endpoints
-  if (req.path.startsWith('/docs') || req.path.startsWith('/debug')) {
+  // Skip secret validation for docs, debug, and ping endpoints
+  if (req.path.startsWith('/docs') || req.path.startsWith('/debug') || req.path === '/ping') {
     return next();
   }
 

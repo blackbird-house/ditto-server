@@ -2,6 +2,7 @@ import sqlite3 from 'sqlite3';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
+import { migrationManager } from './migrations';
 
 export class SQLiteDatabase {
   private db: sqlite3.Database;
@@ -33,9 +34,14 @@ export class SQLiteDatabase {
           firstName TEXT NOT NULL,
           lastName TEXT NOT NULL,
           email TEXT UNIQUE NOT NULL,
-          phone TEXT UNIQUE NOT NULL,
+          phone TEXT UNIQUE,
+          authProvider TEXT DEFAULT 'phone',
+          socialId TEXT,
+          profilePictureUrl TEXT,
           createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+          updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(email, authProvider),
+          UNIQUE(socialId, authProvider)
         )
       `);
 
@@ -82,6 +88,9 @@ export class SQLiteDatabase {
       if (process.env['NODE_ENV'] !== 'test') {
         console.log('✅ Database tables initialized successfully');
       }
+      
+      // Run migrations after table initialization
+      await this.runMigrations();
     } catch (error) {
       console.error('❌ Error initializing database tables:', error);
       throw error;
@@ -98,6 +107,16 @@ export class SQLiteDatabase {
     const dataDir = path.dirname(this.dbPath);
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
+    }
+  }
+
+  private async runMigrations(): Promise<void> {
+    try {
+      await migrationManager.runMigrations();
+    } catch (error) {
+      console.error('❌ Error running migrations:', error);
+      // Don't throw error here to avoid breaking the app startup
+      // Migrations can be run manually if needed
     }
   }
 
@@ -144,11 +163,23 @@ export class SQLiteDatabase {
     firstName: string;
     lastName: string;
     email: string;
-    phone: string;
+    phone?: string;
+    authProvider?: string;
+    socialId?: string;
+    profilePictureUrl?: string;
   }): Promise<void> {
     await this.run(
-      `INSERT INTO users (id, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?)`,
-      [userData.id, userData.firstName, userData.lastName, userData.email, userData.phone]
+      `INSERT INTO users (id, firstName, lastName, email, phone, authProvider, socialId, profilePictureUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userData.id, 
+        userData.firstName, 
+        userData.lastName, 
+        userData.email, 
+        userData.phone || null,
+        userData.authProvider || 'phone',
+        userData.socialId || null,
+        userData.profilePictureUrl || null
+      ]
     );
   }
 
@@ -162,6 +193,14 @@ export class SQLiteDatabase {
 
   async getUserByPhone(phone: string): Promise<any> {
     return this.get('SELECT * FROM users WHERE phone = ?', [phone]);
+  }
+
+  async getUserBySocialId(socialId: string, authProvider: string): Promise<any> {
+    return this.get('SELECT * FROM users WHERE socialId = ? AND authProvider = ?', [socialId, authProvider]);
+  }
+
+  async getUserByEmailAndProvider(email: string, authProvider: string): Promise<any> {
+    return this.get('SELECT * FROM users WHERE email = ? AND authProvider = ?', [email, authProvider]);
   }
 
   async updateUser(id: string, updates: Partial<{

@@ -68,17 +68,17 @@ describe('Ops Module', () => {
         .expect(400);
     });
 
-    it('should require API secret', async () => {
+    it('should not require API secret (ping is excluded from auth)', async () => {
       await request(app)
         .get('/ping')
-        .expect(401);
+        .expect(204);
     });
 
-    it('should reject invalid API secret', async () => {
+    it('should work with invalid API secret (ping is excluded from auth)', async () => {
       await request(app)
         .get('/ping')
         .set('X-API-Secret', 'invalid-secret')
-        .expect(401);
+        .expect(204);
     });
   });
 
@@ -157,11 +157,11 @@ describe('Ops Module', () => {
 
   describe('Error Handling', () => {
     it('should handle malformed requests gracefully', async () => {
-      // Test with malformed headers
+      // Test with malformed headers (ping is excluded from auth)
       await request(app)
         .get('/ping')
         .set('X-API-Secret', '')
-        .expect(401);
+        .expect(204);
     });
 
     it('should handle missing content-type gracefully', async () => {
