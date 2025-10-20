@@ -33,6 +33,12 @@ export interface EnvironmentConfig {
       privateKey: string;
     };
   };
+  openai: {
+    apiKey: string;
+    model: string;
+    maxTokens: number;
+    temperature: number;
+  };
 }
 
 export type Environment = 'development' | 'staging' | 'production' | 'test';

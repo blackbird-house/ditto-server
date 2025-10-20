@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { userService } from './service';
-import { CreateUserRequest, CreateUserResponse, PublicUserResponse } from './types';
+import {
+  CreateUserRequest,
+  CreateUserResponse,
+  PublicUserResponse,
+} from './types';
 import { authService } from '../auth/services/authService';
 import { logError } from '../../utils/logger';
 
@@ -19,37 +23,44 @@ const isUniqueConstraintError = (error: Error): boolean => {
 };
 
 // Helper function to validate user data character limits and formats
-const validateUserDataLimits = (userData: Partial<CreateUserRequest>): string[] => {
+const validateUserDataLimits = (
+  userData: Partial<CreateUserRequest>
+): string[] => {
   const validationErrors: string[] = [];
-  
+
   if (userData.firstName && userData.firstName.length > 50) {
     validationErrors.push('First name must be 50 characters or less');
   }
-  
+
   if (userData.lastName && userData.lastName.length > 50) {
     validationErrors.push('Last name must be 50 characters or less');
   }
-  
+
   if (userData.email && userData.email.length > 254) {
     validationErrors.push('Email must be 254 characters or less');
   }
-  
+
   if (userData.phone) {
     if (userData.phone.length > 20) {
       validationErrors.push('Phone number must be 20 characters or less');
     }
-    
+
     // Phone number format validation: only numbers and optional + prefix
     const phoneRegex = /^\+?[0-9]+$/;
     if (!phoneRegex.test(userData.phone)) {
-      validationErrors.push('Phone number must contain only numbers and an optional + prefix');
+      validationErrors.push(
+        'Phone number must contain only numbers and an optional + prefix'
+      );
     }
   }
-  
+
   return validationErrors;
 };
 
-export const createUser = async (req: Request, res: Response): Promise<void> => {
+export const createUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const userData: CreateUserRequest = req.body;
 
@@ -57,7 +68,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     if (!userData.firstName || !userData.lastName || !userData.email) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Invalid request data'
+        message: 'Invalid request data',
       });
       return;
     }
@@ -66,7 +77,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     if (!userData.phone && (!userData.authProvider || !userData.socialId)) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Either phone number or social authentication (authProvider + socialId) is required'
+        message:
+          'Either phone number or social authentication (authProvider + socialId) is required',
       });
       return;
     }
@@ -76,19 +88,19 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     if (!emailRegex.test(userData.email)) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Invalid request data'
+        message: 'Invalid request data',
       });
       return;
     }
 
     // Character limit validation
     const validationErrors = validateUserDataLimits(userData);
-    
+
     if (validationErrors.length > 0) {
       res.status(400).json({
         error: 'Bad Request',
         message: 'Validation failed',
-        details: validationErrors
+        details: validationErrors,
       });
       return;
     }
@@ -104,7 +116,9 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       ...(user.phone && { phone: user.phone }),
       ...(user.authProvider && { authProvider: user.authProvider }),
       ...(user.socialId && { socialId: user.socialId }),
-      ...(user.profilePictureUrl && { profilePictureUrl: user.profilePictureUrl }),
+      ...(user.profilePictureUrl && {
+        profilePictureUrl: user.profilePictureUrl,
+      }),
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };
@@ -114,36 +128,39 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     if (error instanceof Error && isUniqueConstraintError(error)) {
       res.status(409).json({
         error: 'Conflict',
-        message: 'Resource already exists'
+        message: 'Resource already exists',
       });
     } else {
       logError('Users', 'createUser', error, req);
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to create user'
+        message: 'Failed to create user',
       });
     }
   }
 };
 
-export const getUserById = async (req: Request, res: Response): Promise<void> => {
+export const getUserById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params;
-    
+
     if (!id) {
       res.status(400).json({
         error: 'Bad request',
-        message: 'Invalid request data'
+        message: 'Invalid request data',
       });
       return;
     }
-    
+
     const user = await userService.getUserById(id);
 
     if (!user) {
       res.status(404).json({
         error: 'Not found',
-        message: 'Resource not found'
+        message: 'Resource not found',
       });
       return;
     }
@@ -155,18 +172,21 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     };
 
     res.status(200).json({
-      user: response
+      user: response,
     });
   } catch (error) {
     logError('Users', 'getUserById', error, req);
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to get user'
+      message: 'Failed to get user',
     });
   }
 };
 
-export const updateUser = async (req: Request, res: Response): Promise<void> => {
+export const updateUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // The user ID is attached by the auth middleware
     const userId = (req as any).user?.id;
@@ -175,16 +195,21 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
       return;
     }
 
     // Validate that at least one field is provided for update
-    if (!userData.firstName && !userData.lastName && !userData.email && !userData.phone) {
+    if (
+      !userData.firstName &&
+      !userData.lastName &&
+      !userData.email &&
+      !userData.phone
+    ) {
       res.status(400).json({
         error: 'Bad request',
-        message: 'Invalid request data'
+        message: 'Invalid request data',
       });
       return;
     }
@@ -195,7 +220,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       if (!emailRegex.test(userData.email)) {
         res.status(400).json({
           error: 'Invalid email format',
-          message: 'Please provide a valid email address'
+          message: 'Please provide a valid email address',
         });
         return;
       }
@@ -203,12 +228,12 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
     // Character limit validation for fields being updated
     const validationErrors = validateUserDataLimits(userData);
-    
+
     if (validationErrors.length > 0) {
       res.status(400).json({
         error: 'Bad Request',
         message: 'Validation failed',
-        details: validationErrors
+        details: validationErrors,
       });
       return;
     }
@@ -218,7 +243,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (!updatedUser) {
       res.status(404).json({
         error: 'Not found',
-        message: 'Resource not found'
+        message: 'Resource not found',
       });
       return;
     }
@@ -230,9 +255,13 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       lastName: updatedUser.lastName,
       email: updatedUser.email,
       ...(updatedUser.phone && { phone: updatedUser.phone }),
-      ...(updatedUser.authProvider && { authProvider: updatedUser.authProvider }),
+      ...(updatedUser.authProvider && {
+        authProvider: updatedUser.authProvider,
+      }),
       ...(updatedUser.socialId && { socialId: updatedUser.socialId }),
-      ...(updatedUser.profilePictureUrl && { profilePictureUrl: updatedUser.profilePictureUrl }),
+      ...(updatedUser.profilePictureUrl && {
+        profilePictureUrl: updatedUser.profilePictureUrl,
+      }),
       createdAt: updatedUser.createdAt.toISOString(),
       updatedAt: updatedUser.updatedAt.toISOString(),
     };
@@ -242,13 +271,13 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (error instanceof Error && isUniqueConstraintError(error)) {
       res.status(409).json({
         error: 'Conflict',
-        message: 'Resource already exists'
+        message: 'Resource already exists',
       });
     } else {
       logError('Users', 'updateUser', error, req);
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to update user'
+        message: 'Failed to update user',
       });
     }
   }
@@ -258,21 +287,21 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
     // The user ID is attached by the auth middleware
     const userId = (req as any).user?.id;
-    
+
     if (!userId) {
       res.status(401).json({
         error: 'Unauthorized',
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
       return;
     }
 
     const user = await authService.getMe(userId);
-    
+
     if (!user) {
       res.status(404).json({
         error: 'Not found',
-        message: 'Resource not found'
+        message: 'Resource not found',
       });
       return;
     }
@@ -282,8 +311,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
     logError('Users', 'getMe', error, req);
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to get user profile'
+      message: 'Failed to get user profile',
     });
   }
 };
-

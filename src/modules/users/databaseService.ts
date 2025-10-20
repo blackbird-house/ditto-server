@@ -13,7 +13,9 @@ class DatabaseUserService implements UserService {
       ...(userData.phone && { phone: userData.phone }),
       ...(userData.authProvider && { authProvider: userData.authProvider }),
       ...(userData.socialId && { socialId: userData.socialId }),
-      ...(userData.profilePictureUrl && { profilePictureUrl: userData.profilePictureUrl }),
+      ...(userData.profilePictureUrl && {
+        profilePictureUrl: userData.profilePictureUrl,
+      }),
       createdAt: now,
       updatedAt: now,
     };
@@ -34,7 +36,9 @@ class DatabaseUserService implements UserService {
       ...(user.phone && { phone: user.phone }),
       ...(user.authProvider && { authProvider: user.authProvider }),
       ...(user.socialId && { socialId: user.socialId }),
-      ...(user.profilePictureUrl && { profilePictureUrl: user.profilePictureUrl }),
+      ...(user.profilePictureUrl && {
+        profilePictureUrl: user.profilePictureUrl,
+      }),
       createdAt: new Date(user.createdAt),
       updatedAt: new Date(user.updatedAt),
     };
@@ -52,7 +56,9 @@ class DatabaseUserService implements UserService {
       ...(user.phone && { phone: user.phone }),
       ...(user.authProvider && { authProvider: user.authProvider }),
       ...(user.socialId && { socialId: user.socialId }),
-      ...(user.profilePictureUrl && { profilePictureUrl: user.profilePictureUrl }),
+      ...(user.profilePictureUrl && {
+        profilePictureUrl: user.profilePictureUrl,
+      }),
       createdAt: new Date(user.createdAt),
       updatedAt: new Date(user.updatedAt),
     };
@@ -70,7 +76,9 @@ class DatabaseUserService implements UserService {
       ...(user.phone && { phone: user.phone }),
       ...(user.authProvider && { authProvider: user.authProvider }),
       ...(user.socialId && { socialId: user.socialId }),
-      ...(user.profilePictureUrl && { profilePictureUrl: user.profilePictureUrl }),
+      ...(user.profilePictureUrl && {
+        profilePictureUrl: user.profilePictureUrl,
+      }),
       createdAt: new Date(user.createdAt),
       updatedAt: new Date(user.updatedAt),
     };
@@ -82,7 +90,10 @@ class DatabaseUserService implements UserService {
     return [];
   }
 
-  async updateUser(id: string, userData: Partial<CreateUserRequest>): Promise<User | null> {
+  async updateUser(
+    id: string,
+    userData: Partial<CreateUserRequest>
+  ): Promise<User | null> {
     const updatedUser = await databaseService.updateUser(id, userData);
     if (!updatedUser) return null;
 

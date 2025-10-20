@@ -9,12 +9,12 @@ import config from '../../../config';
  */
 export class SocialAuthService {
   private googleClient: OAuth2Client;
-  
+
   constructor() {
     // Initialize Google OAuth2 client
     this.googleClient = new OAuth2Client(config.socialAuth.google.clientId);
   }
-  
+
   /**
    * Verify Google OAuth token and extract user information
    */
@@ -37,7 +37,7 @@ export class SocialAuthService {
         email: payload.email || '',
         firstName: payload.given_name || '',
         lastName: payload.family_name || '',
-        ...(payload.picture && { profilePictureUrl: payload.picture })
+        ...(payload.picture && { profilePictureUrl: payload.picture }),
       };
     } catch (error) {
       console.error('Google token verification failed:', error);
@@ -49,14 +49,21 @@ export class SocialAuthService {
    * Verify social token based on provider
    * Currently only supports Google Sign-In
    */
-  async verifySocialToken(provider: 'google' | 'apple', token: string): Promise<SocialUserInfo> {
+  async verifySocialToken(
+    provider: 'google' | 'apple',
+    token: string
+  ): Promise<SocialUserInfo> {
     switch (provider) {
       case 'google':
         return this.verifyGoogleToken(token);
       case 'apple':
-        throw new Error('Apple Sign-In is not currently supported. Please use Google Sign-In.');
+        throw new Error(
+          'Apple Sign-In is not currently supported. Please use Google Sign-In.'
+        );
       default:
-        throw new Error('Unsupported authentication provider. Only Google Sign-In is supported.');
+        throw new Error(
+          'Unsupported authentication provider. Only Google Sign-In is supported.'
+        );
     }
   }
 }

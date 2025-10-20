@@ -1,17 +1,21 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth';
-import { 
-  createChat, 
-  getUserChats, 
-  getChatById, 
-  sendMessage, 
-  getChatMessages 
+import {
+  createChat,
+  getUserChats,
+  getChatById,
+  sendMessage,
+  getChatMessages,
+  sendAIMessage,
 } from './controller';
 
 const router = Router();
 
 // All chat routes require authentication
 router.use(authMiddleware);
+
+// AI Chat routes - MUST be before parameterized routes
+router.post('/ai/messages', sendAIMessage);
 
 // Chat management routes
 router.post('/', createChat);

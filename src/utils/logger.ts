@@ -5,7 +5,12 @@ import config from '../config';
  * Safe error logging utility for production
  * Sanitizes error messages and provides consistent logging format
  */
-export const logError = (module: string, operation: string, error: unknown, req: Request) => {
+export const logError = (
+  module: string,
+  operation: string,
+  error: unknown,
+  req: Request
+) => {
   if (config.env === 'production') {
     console.error(`🚨 ${module} ${operation} Error:`, {
       module,
@@ -14,7 +19,7 @@ export const logError = (module: string, operation: string, error: unknown, req:
       errorName: error instanceof Error ? error.name : 'Unknown',
       path: req.path,
       method: req.method,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } else {
     console.error(`🚨 ${module} ${operation} Error:`, error);
@@ -25,7 +30,12 @@ export const logError = (module: string, operation: string, error: unknown, req:
  * Safe request logging utility for production
  * Logs request details without sensitive data
  */
-export const logRequest = (module: string, operation: string, req: Request, additionalData?: Record<string, any>) => {
+export const logRequest = (
+  module: string,
+  operation: string,
+  req: Request,
+  additionalData?: Record<string, any>
+) => {
   if (config.env === 'production') {
     console.log(`🔍 ${module} ${operation} Request:`, {
       module,
@@ -39,14 +49,14 @@ export const logRequest = (module: string, operation: string, req: Request, addi
       contentLength: req.get('Content-Length') || '0',
       hasAuth: !!req.headers.authorization,
       hasApiSecret: !!req.headers['x-api-secret'],
-      ...additionalData
+      ...additionalData,
     });
   } else {
     console.log(`🔍 ${module} ${operation} Request:`, {
       method: req.method,
       path: req.path,
       query: Object.keys(req.query).length > 0 ? req.query : undefined,
-      ...additionalData
+      ...additionalData,
     });
   }
 };

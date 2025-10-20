@@ -46,6 +46,9 @@ export interface UserService {
   getUserByEmail(email: string): User | null | Promise<User | null>;
   getUserByPhone(phone: string): User | null | Promise<User | null>;
   getAllUsers(): User[] | Promise<User[]>;
-  updateUser(id: string, userData: Partial<CreateUserRequest>): User | null | Promise<User | null>;
+  updateUser(
+    id: string,
+    userData: Partial<CreateUserRequest>
+  ): User | null | Promise<User | null>;
   deleteUser(id: string): boolean | Promise<boolean>;
 }

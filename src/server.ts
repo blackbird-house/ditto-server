@@ -20,7 +20,9 @@ const server = app.listen(PORT, () => {
 // Handle port conflicts - fail immediately if port is in use
 server.on('error', (error: any) => {
   if (error.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use. Please choose a different port or stop the process using this port.`);
+    console.error(
+      `❌ Port ${PORT} is already in use. Please choose a different port or stop the process using this port.`
+    );
     process.exit(1);
   } else {
     console.error('❌ Server error:', error.message);

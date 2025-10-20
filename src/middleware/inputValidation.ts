@@ -4,7 +4,11 @@ import { Request, Response, NextFunction } from 'express';
  * Input validation middleware
  * Validates and sanitizes common input fields
  */
-export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const inputValidationMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Skip validation for GET requests without body
   if (req.method === 'GET' && !req.body) {
     return next();
@@ -25,7 +29,7 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
       if (!emailRegex.test(email)) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'Invalid request data'
+          message: 'Invalid request data',
         });
         return;
       }
@@ -39,7 +43,7 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
       if (!phoneRegex.test(phone)) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'Invalid request data'
+          message: 'Invalid request data',
         });
         return;
       }
@@ -60,7 +64,7 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
       if (content.length === 0) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'Invalid request data'
+          message: 'Invalid request data',
         });
         return;
       }
@@ -74,7 +78,7 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
       if (!otpRegex.test(otp)) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'Invalid request data'
+          message: 'Invalid request data',
         });
         return;
       }
@@ -87,7 +91,7 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
       if (isNaN(limit) || limit < 1 || limit > 100) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'Invalid request data'
+          message: 'Invalid request data',
         });
         return;
       }
@@ -99,7 +103,7 @@ export const inputValidationMiddleware = (req: Request, res: Response, next: Nex
       if (isNaN(offset) || offset < 0) {
         res.status(400).json({
           error: 'Bad Request',
-          message: 'Invalid request data'
+          message: 'Invalid request data',
         });
         return;
       }

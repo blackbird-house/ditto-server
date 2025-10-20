@@ -80,6 +80,20 @@ export interface AuthService {
   generateRefreshToken(userId: string, phone: string): string;
   verifyToken(token: string): AuthToken | null;
   verifyRefreshToken(refreshToken: string): AuthToken | null;
-  getMe(userId: string): Promise<{ id: string; phone?: string; firstName?: string; lastName?: string; email?: string; authProvider?: string; createdAt: string; updatedAt: string } | null>;
-  authenticateSocial(provider: 'google' | 'apple', token: string): Promise<SocialAuthResponse>;
+  getMe(
+    userId: string
+  ): Promise<{
+    id: string;
+    phone?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    authProvider?: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null>;
+  authenticateSocial(
+    provider: 'google' | 'apple',
+    token: string
+  ): Promise<SocialAuthResponse>;
 }

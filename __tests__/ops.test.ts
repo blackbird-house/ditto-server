@@ -10,7 +10,7 @@ describe('Ops Module', () => {
         .get('/ping')
         .set('X-API-Secret', validSecret)
         .expect(204);
-      
+
       expect(response.body).toEqual({});
       expect(response.text).toBe('');
     });
@@ -20,7 +20,7 @@ describe('Ops Module', () => {
         .get('/ping')
         .set('X-API-Secret', validSecret)
         .expect(204);
-      
+
       // Security headers should be present
       expect(response.headers['x-powered-by']).toBeUndefined();
       expect(response.headers['vary']).toBe('Origin');
@@ -28,12 +28,14 @@ describe('Ops Module', () => {
     });
 
     it('should handle multiple concurrent requests', async () => {
-      const promises = Array(10).fill(null).map(() => 
-        request(app).get('/ping').set('X-API-Secret', validSecret).expect(204)
-      );
-      
+      const promises = Array(10)
+        .fill(null)
+        .map(() =>
+          request(app).get('/ping').set('X-API-Secret', validSecret).expect(204)
+        );
+
       const responses = await Promise.all(promises);
-      
+
       responses.forEach(response => {
         expect(response.status).toBe(204);
         expect(response.body).toEqual({});
@@ -69,9 +71,7 @@ describe('Ops Module', () => {
     });
 
     it('should not require API secret (ping is excluded from auth)', async () => {
-      await request(app)
-        .get('/ping')
-        .expect(204);
+      await request(app).get('/ping').expect(204);
     });
 
     it('should work with invalid API secret (ping is excluded from auth)', async () => {
@@ -89,7 +89,7 @@ describe('Ops Module', () => {
         .get('/ping')
         .set('X-API-Secret', validSecret)
         .expect(204);
-      
+
       expect(response.status).toBe(204);
     });
 
@@ -106,34 +106,31 @@ describe('Ops Module', () => {
   describe('Performance and Reliability', () => {
     it('should respond quickly to ping requests', async () => {
       const startTime = Date.now();
-      
+
       await request(app)
         .get('/ping')
         .set('X-API-Secret', validSecret)
         .expect(204);
-      
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       // Should respond within 100ms
       expect(responseTime).toBeLessThan(100);
     });
 
     it('should handle rapid successive requests', async () => {
       const requests = [];
-      
+
       // Make 50 rapid requests
       for (let i = 0; i < 50; i++) {
         requests.push(
-          request(app)
-            .get('/ping')
-            .set('X-API-Secret', validSecret)
-            .expect(204)
+          request(app).get('/ping').set('X-API-Secret', validSecret).expect(204)
         );
       }
-      
+
       const responses = await Promise.all(requests);
-      
+
       // All should succeed
       responses.forEach(response => {
         expect(response.status).toBe(204);
@@ -144,9 +141,9 @@ describe('Ops Module', () => {
       const responses = await Promise.all([
         request(app).get('/ping').set('X-API-Secret', validSecret),
         request(app).get('/ping').set('X-API-Secret', validSecret),
-        request(app).get('/ping').set('X-API-Secret', validSecret)
+        request(app).get('/ping').set('X-API-Secret', validSecret),
       ]);
-      
+
       responses.forEach(response => {
         expect(response.status).toBe(204);
         expect(response.body).toEqual({});
@@ -158,10 +155,7 @@ describe('Ops Module', () => {
   describe('Error Handling', () => {
     it('should handle malformed requests gracefully', async () => {
       // Test with malformed headers (ping is excluded from auth)
-      await request(app)
-        .get('/ping')
-        .set('X-API-Secret', '')
-        .expect(204);
+      await request(app).get('/ping').set('X-API-Secret', '').expect(204);
     });
 
     it('should handle missing content-type gracefully', async () => {
@@ -170,7 +164,7 @@ describe('Ops Module', () => {
         .set('X-API-Secret', validSecret)
         .unset('Content-Type')
         .expect(204);
-      
+
       expect(response.status).toBe(204);
     });
   });

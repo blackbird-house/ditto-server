@@ -11,7 +11,7 @@ describe('User Module', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john.doe@example.com',
-        phone: '+1234567890'
+        phone: '+1234567890',
       };
 
       const response = await request(app)
@@ -36,7 +36,7 @@ describe('User Module', () => {
         email: 'jane.smith@example.com',
         authProvider: 'google',
         socialId: 'google_123456789',
-        profilePictureUrl: 'https://example.com/profile.jpg'
+        profilePictureUrl: 'https://example.com/profile.jpg',
       };
 
       const response = await request(app)
@@ -51,7 +51,10 @@ describe('User Module', () => {
       expect(response.body).toHaveProperty('email', 'jane.smith@example.com');
       expect(response.body).toHaveProperty('authProvider', 'google');
       expect(response.body).toHaveProperty('socialId', 'google_123456789');
-      expect(response.body).toHaveProperty('profilePictureUrl', 'https://example.com/profile.jpg');
+      expect(response.body).toHaveProperty(
+        'profilePictureUrl',
+        'https://example.com/profile.jpg'
+      );
       expect(response.body).toHaveProperty('createdAt');
       expect(response.body).toHaveProperty('updatedAt');
     });
@@ -62,7 +65,7 @@ describe('User Module', () => {
         lastName: 'User',
         email: 'google.user@example.com',
         authProvider: 'google',
-        socialId: 'google_987654321'
+        socialId: 'google_987654321',
       };
 
       const response = await request(app)
@@ -104,7 +107,7 @@ describe('User Module', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'invalid-email',
-        phone: '+1234567890'
+        phone: '+1234567890',
       };
 
       const response = await request(app)
@@ -122,7 +125,7 @@ describe('User Module', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'duplicate@example.com',
-        phone: `+1234567${Math.floor(Math.random() * 1000)}`
+        phone: `+1234567${Math.floor(Math.random() * 1000)}`,
       };
 
       // Create first user
@@ -140,7 +143,10 @@ describe('User Module', () => {
         .expect(409);
 
       expect(response.body).toHaveProperty('error', 'Conflict');
-      expect(response.body).toHaveProperty('message', 'Resource already exists');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Resource already exists'
+      );
     });
   });
 
@@ -154,7 +160,7 @@ describe('User Module', () => {
         firstName: 'Original',
         lastName: 'Name',
         email: 'original@example.com',
-        phone: testPhone
+        phone: testPhone,
       };
 
       const createResponse = await request(app)
@@ -185,7 +191,7 @@ describe('User Module', () => {
         firstName: 'Updated',
         lastName: 'Name',
         email: 'updated@example.com',
-        phone: '+2222222222'
+        phone: '+2222222222',
       };
 
       const response = await request(app)
@@ -213,7 +219,7 @@ describe('User Module', () => {
         firstName: 'Original',
         lastName: 'Name',
         email: 'original2@example.com',
-        phone: testPhone
+        phone: testPhone,
       };
 
       await request(app)
@@ -239,7 +245,7 @@ describe('User Module', () => {
 
       // Update only firstName
       const updateData = {
-        firstName: 'UpdatedFirstName'
+        firstName: 'UpdatedFirstName',
       };
 
       const response = await request(app)
@@ -263,7 +269,7 @@ describe('User Module', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test3@example.com',
-        phone: testPhone
+        phone: testPhone,
       };
 
       await request(app)
@@ -308,7 +314,7 @@ describe('User Module', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test4@example.com',
-        phone: testPhone
+        phone: testPhone,
       };
 
       await request(app)
@@ -341,7 +347,10 @@ describe('User Module', () => {
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Invalid email format');
-      expect(response.body).toHaveProperty('message', 'Please provide a valid email address');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Please provide a valid email address'
+      );
     });
 
     it('should return 401 for missing authentication token', async () => {
@@ -351,7 +360,10 @@ describe('User Module', () => {
         .expect(401);
 
       expect(response.body).toHaveProperty('error', 'Unauthorized');
-      expect(response.body).toHaveProperty('message', 'Authentication required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Authentication required'
+      );
     });
 
     it('should return 401 for invalid authentication token', async () => {
@@ -363,7 +375,10 @@ describe('User Module', () => {
         .expect(401);
 
       expect(response.body).toHaveProperty('error', 'Unauthorized');
-      expect(response.body).toHaveProperty('message', 'Authentication required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Authentication required'
+      );
     });
 
     it('should return 409 for duplicate email', async () => {
@@ -376,14 +391,14 @@ describe('User Module', () => {
         firstName: 'User1',
         lastName: 'Test',
         email: 'user1@example.com',
-        phone: testPhone1
+        phone: testPhone1,
       };
 
       const user2Data = {
         firstName: 'User2',
         lastName: 'Test',
         email: 'user2@example.com',
-        phone: testPhone2
+        phone: testPhone2,
       };
 
       await request(app)
@@ -422,7 +437,10 @@ describe('User Module', () => {
         .expect(409);
 
       expect(response.body).toHaveProperty('error', 'Conflict');
-      expect(response.body).toHaveProperty('message', 'Resource already exists');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Resource already exists'
+      );
     });
   });
 
@@ -433,7 +451,7 @@ describe('User Module', () => {
         firstName: 'Bob',
         lastName: 'Johnson',
         email: 'bob.johnson@example.com',
-        phone: '+1122334455'
+        phone: '+1122334455',
       };
 
       const createResponse = await request(app)
@@ -469,7 +487,7 @@ describe('User Module', () => {
       expect(response.body.user).toHaveProperty('id', userId);
       expect(response.body.user).toHaveProperty('firstName', 'Bob');
       expect(response.body.user).toHaveProperty('lastName', 'Johnson');
-      
+
       // Should NOT include sensitive information
       expect(response.body.user).not.toHaveProperty('email');
       expect(response.body.user).not.toHaveProperty('phone');
@@ -478,12 +496,13 @@ describe('User Module', () => {
     });
 
     it('should return 401 for missing authentication token', async () => {
-      const response = await request(app)
-        .get('/users/some-id')
-        .expect(401);
+      const response = await request(app).get('/users/some-id').expect(401);
 
       expect(response.body).toHaveProperty('error', 'Unauthorized');
-      expect(response.body).toHaveProperty('message', 'Authentication required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Authentication required'
+      );
     });
 
     it('should return 401 for invalid authentication token', async () => {
@@ -494,7 +513,10 @@ describe('User Module', () => {
         .expect(401);
 
       expect(response.body).toHaveProperty('error', 'Unauthorized');
-      expect(response.body).toHaveProperty('message', 'Authentication required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Authentication required'
+      );
     });
 
     it('should return 404 for non-existent user ID with valid authentication', async () => {
@@ -503,7 +525,7 @@ describe('User Module', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test6@example.com',
-        phone: '+1111111116'
+        phone: '+1111111116',
       };
 
       await request(app)

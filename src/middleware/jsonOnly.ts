@@ -6,7 +6,11 @@ import { Request, Response, NextFunction } from 'express';
  * Ensures all responses are in JSON format
  * Excludes /docs endpoint which serves HTML content
  */
-export const jsonOnlyMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+export const jsonOnlyMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   // Skip JSON enforcement for docs endpoint (serves HTML)
   if (req.path.startsWith('/docs')) {
     return next();
@@ -15,11 +19,11 @@ export const jsonOnlyMiddleware = (req: Request, res: Response, next: NextFuncti
   // Check if request has a body and requires JSON content type
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     const contentType = req.headers['content-type'];
-    
+
     if (!contentType || !contentType.includes('application/json')) {
       res.status(400).json({
         error: 'Bad Request',
-        message: 'Invalid request format'
+        message: 'Invalid request format',
       });
       return;
     }

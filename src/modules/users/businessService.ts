@@ -29,10 +29,15 @@ class BusinessUserService {
     return await this.dataService.getAllUsers();
   }
 
-  async updateUser(id: string, userData: Partial<CreateUserRequest>): Promise<User | null> {
+  async updateUser(
+    id: string,
+    userData: Partial<CreateUserRequest>
+  ): Promise<User | null> {
     // Business rule: Check if email is being updated and if it already exists
     if (userData.email) {
-      const existingUser = await this.dataService.getUserByEmail(userData.email);
+      const existingUser = await this.dataService.getUserByEmail(
+        userData.email
+      );
       if (existingUser && existingUser.id !== id) {
         throw new Error('User with this email already exists');
       }

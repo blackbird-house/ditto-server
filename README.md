@@ -16,6 +16,7 @@ A ready-to-use, easy-to-clone REST API server built with Node.js, TypeScript, an
 ## 🚀 Quick Start
 
 1. **Clone and install:**
+
    ```bash
    git clone <repository-url>
    cd ditto-server
@@ -23,12 +24,14 @@ A ready-to-use, easy-to-clone REST API server built with Node.js, TypeScript, an
    ```
 
 2. **Set up environment:**
+
    ```bash
    cp env.example .env.development
    # Edit .env.development with your configuration
    ```
 
 3. **Run the server:**
+
    ```bash
    yarn dev
    ```
@@ -57,20 +60,24 @@ ditto-server/
 ## 🔗 API Endpoints
 
 ### Health Check
+
 - **GET** `/ping` - Health check endpoint
 
 ### User Management
+
 - **POST** `/users` - Create a new user
 - **GET** `/users/me` - Get authenticated user profile
 - **PUT** `/users/me` - Update user profile
 - **GET** `/users/:id` - Get user by ID
 
 ### Authentication
+
 - **POST** `/auth/send-otp` - Send OTP to phone number
 - **POST** `/auth/verify-otp` - Verify OTP and get tokens
 - **POST** `/auth/refresh-token` - Refresh authentication tokens
 
 ### Chat System
+
 - **POST** `/chats` - Create a new chat
 - **GET** `/chats` - Get all user chats
 - **GET** `/chats/:chatId` - Get specific chat
@@ -78,6 +85,7 @@ ditto-server/
 - **GET** `/chats/:chatId/messages` - Get chat messages
 
 ### Documentation
+
 - **GET** `/docs` - Interactive API documentation (Swagger UI)
 
 ## 🛠️ Technology Stack
@@ -128,6 +136,6 @@ yarn test:prod
 
 ## 📋 Requirements
 
-- Node.js 18+ 
+- Node.js 18+
 - Yarn package manager
 - Environment variables configured (see setup guide)

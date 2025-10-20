@@ -21,7 +21,10 @@ describe('Authentication Module', () => {
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Bad request');
-      expect(response.body).toHaveProperty('message', 'Phone number is required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Phone number is required'
+      );
     });
 
     it('should return 400 for invalid phone number format', async () => {
@@ -32,7 +35,10 @@ describe('Authentication Module', () => {
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Invalid phone number');
-      expect(response.body).toHaveProperty('message', 'Please provide a valid phone number in international format (e.g., +1234567890)');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Please provide a valid phone number in international format (e.g., +1234567890)'
+      );
     });
   });
 
@@ -45,7 +51,10 @@ describe('Authentication Module', () => {
         .expect(400);
 
       expect(response.body).toHaveProperty('error', 'Bad request');
-      expect(response.body).toHaveProperty('message', 'Phone number and OTP are required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Phone number and OTP are required'
+      );
     });
 
     it('should return 404 for non-existent user (OTP bypass mode)', async () => {
@@ -68,7 +77,10 @@ describe('Authentication Module', () => {
         .expect(401);
 
       expect(response.body).toHaveProperty('error', 'Unauthorized');
-      expect(response.body).toHaveProperty('message', 'Authentication required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Authentication required'
+      );
     });
 
     it('should return 401 for invalid authentication token', async () => {
@@ -79,7 +91,10 @@ describe('Authentication Module', () => {
         .expect(401);
 
       expect(response.body).toHaveProperty('error', 'Unauthorized');
-      expect(response.body).toHaveProperty('message', 'Authentication required');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Authentication required'
+      );
     });
 
     it('should return user profile with valid token', async () => {
@@ -95,7 +110,7 @@ describe('Authentication Module', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: testEmail,
-          phone: testPhone
+          phone: testPhone,
         })
         .expect(201);
 
@@ -150,7 +165,7 @@ describe('Authentication Module', () => {
           firstName: 'Jane',
           lastName: 'Smith',
           email: `jane.smith${Date.now()}@example.com`,
-          phone: testPhone
+          phone: testPhone,
         })
         .expect(201);
 
@@ -186,7 +201,7 @@ describe('Authentication Module', () => {
           firstName: 'Bob',
           lastName: 'Johnson',
           email: `bob.johnson${Date.now()}@example.com`,
-          phone: testPhone
+          phone: testPhone,
         })
         .expect(201);
 
@@ -205,7 +220,10 @@ describe('Authentication Module', () => {
         .expect(400);
 
       expect(verifyOtpResponse.body).toHaveProperty('error', 'Invalid OTP');
-      expect(verifyOtpResponse.body).toHaveProperty('message', 'Invalid code. Please enter the last 6 digits of your phone number.');
+      expect(verifyOtpResponse.body).toHaveProperty(
+        'message',
+        'Invalid code. Please enter the last 6 digits of your phone number.'
+      );
     });
 
     it('should return 404 when user is not found', async () => {
@@ -227,7 +245,10 @@ describe('Authentication Module', () => {
         .expect(404);
 
       expect(verifyOtpResponse.body).toHaveProperty('error', 'Not found');
-      expect(verifyOtpResponse.body).toHaveProperty('message', 'User not found');
+      expect(verifyOtpResponse.body).toHaveProperty(
+        'message',
+        'User not found'
+      );
     });
   });
 
@@ -244,7 +265,7 @@ describe('Authentication Module', () => {
           firstName: 'Refresh',
           lastName: 'User',
           email: `refresh.user${Date.now()}@example.com`,
-          phone: testPhone
+          phone: testPhone,
         })
         .expect(201);
 
@@ -314,7 +335,10 @@ describe('Authentication Module', () => {
       await request(app)
         .post('/auth/refresh-token')
         .set('X-API-Secret', 'test-secret-key-67890')
-        .send({ refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0IiwicGhvbmUiOiIrMTIzNDU2Nzg5MCIsInR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxLCJleHAiOjF9.invalid' })
+        .send({
+          refreshToken:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0IiwicGhvbmUiOiIrMTIzNDU2Nzg5MCIsInR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxLCJleHAiOjF9.invalid',
+        })
         .expect(401);
     });
   });

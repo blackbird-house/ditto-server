@@ -10,7 +10,7 @@ describe('Ping Endpoint', () => {
         .get('/ping')
         .set('X-API-Secret', validSecret)
         .expect(204);
-      
+
       expect(response.body).toEqual({});
       expect(response.text).toBe('');
     });
@@ -20,22 +20,23 @@ describe('Ping Endpoint', () => {
         .get('/ping')
         .set('X-API-Secret', validSecret)
         .expect(204);
-      
+
       // x-powered-by header is removed by Helmet.js for security
       expect(response.headers['x-powered-by']).toBeUndefined();
       expect(response.headers['vary']).toBe('Origin');
       expect(response.headers['access-control-allow-credentials']).toBe('true');
     });
 
-
     it('should handle multiple requests', async () => {
       // Make multiple requests to test server stability
-      const promises = Array(5).fill(null).map(() => 
-        request(app).get('/ping').set('X-API-Secret', validSecret).expect(204)
-      );
-      
+      const promises = Array(5)
+        .fill(null)
+        .map(() =>
+          request(app).get('/ping').set('X-API-Secret', validSecret).expect(204)
+        );
+
       const responses = await Promise.all(promises);
-      
+
       responses.forEach(response => {
         expect(response.status).toBe(204);
         expect(response.body).toEqual({});

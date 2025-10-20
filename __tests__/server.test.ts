@@ -6,11 +6,12 @@ describe('Server Configuration', () => {
   describe('Environment Configuration', () => {
     it('should load correct environment configuration', () => {
       expect(config).toBeDefined();
-      expect(['test', 'staging', 'production', 'development']).toContain(config.env);
+      expect(['test', 'staging', 'production', 'development']).toContain(
+        config.env
+      );
       expect(config.port).toBeDefined();
       expect(config.cors).toBeDefined();
     });
-
 
     it('should have CORS configured', () => {
       expect(config.cors).toBeDefined();
@@ -25,11 +26,10 @@ describe('Server Configuration', () => {
         .get('/ping')
         .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
-      
+
       expect(response.headers['access-control-allow-credentials']).toBe('true');
       expect(response.headers['vary']).toBe('Origin');
     });
-
 
     it('should apply logging middleware', async () => {
       // This test verifies the logging middleware doesn't break the request
@@ -37,7 +37,7 @@ describe('Server Configuration', () => {
         .get('/ping')
         .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
-      
+
       expect(response.status).toBe(204);
     });
   });
@@ -48,7 +48,7 @@ describe('Server Configuration', () => {
         .get('/ping')
         .set('X-API-Secret', 'test-secret-key-67890')
         .expect(204);
-      
+
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
     });
@@ -60,10 +60,10 @@ describe('Server Configuration', () => {
         .get('/nonexistent-route')
         .set('X-API-Secret', 'test-secret-key-67890')
         .expect(404);
-      
+
       expect(response.body).toEqual({
         error: 'Not Found',
-        message: 'Resource not found'
+        message: 'Resource not found',
       });
     });
 
@@ -73,10 +73,10 @@ describe('Server Configuration', () => {
         .set('X-API-Secret', 'test-secret-key-67890')
         .send({ firstName: 'Test' })
         .expect(404);
-      
+
       expect(response.body).toEqual({
         error: 'Not Found',
-        message: 'Resource not found'
+        message: 'Resource not found',
       });
     });
 
@@ -86,12 +86,11 @@ describe('Server Configuration', () => {
         .set('X-API-Secret', 'test-secret-key-67890')
         .send({ test: 'data' })
         .expect(404);
-      
+
       expect(response.body).toEqual({
         error: 'Not Found',
-        message: 'Resource not found'
+        message: 'Resource not found',
       });
     });
   });
-
 });

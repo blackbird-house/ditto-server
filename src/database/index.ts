@@ -7,7 +7,7 @@ export interface DatabaseService {
   run(sql: string, params?: any[]): Promise<any>;
   get(sql: string, params?: any[]): Promise<any>;
   all(sql: string, params?: any[]): Promise<any[]>;
-  
+
   // User operations
   createUser(userData: {
     id: string;
@@ -24,12 +24,15 @@ export interface DatabaseService {
   getUserByPhone(phone: string): Promise<any>;
   getUserBySocialId(socialId: string, authProvider: string): Promise<any>;
   getUserByEmailAndProvider(email: string, authProvider: string): Promise<any>;
-  updateUser(id: string, updates: Partial<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  }>): Promise<any>;
+  updateUser(
+    id: string,
+    updates: Partial<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+    }>
+  ): Promise<any>;
   deleteUser(id: string): Promise<boolean>;
 
   // OTP operations
@@ -62,7 +65,11 @@ export interface DatabaseService {
     content: string;
   }): Promise<void>;
   getMessages(chatId: string, limit?: number, offset?: number): Promise<any[]>;
-  getMessagesBefore(chatId: string, beforeMessageId: string, limit?: number): Promise<any[]>;
+  getMessagesBefore(
+    chatId: string,
+    beforeMessageId: string,
+    limit?: number
+  ): Promise<any[]>;
   getLastMessage(chatId: string): Promise<any>;
 }
 
@@ -85,14 +92,16 @@ class DatabaseServiceWrapper implements DatabaseService {
     try {
       // Use require instead of import to avoid module loading issues
       const { getSupabaseDatabase } = require('./supabase');
-      
+
       const supabaseUrl = process.env['DATABASE_URL'];
       const supabaseAnonKey = process.env['DATABASE_KEY'];
 
       if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('DATABASE_URL and DATABASE_KEY environment variables are required for Supabase');
+        throw new Error(
+          'DATABASE_URL and DATABASE_KEY environment variables are required for Supabase'
+        );
       }
-      
+
       this.supabaseDb = getSupabaseDatabase(supabaseUrl, supabaseAnonKey);
     } catch (error) {
       console.error('Failed to initialize Supabase:', error);
@@ -178,7 +187,10 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getUserBySocialId(socialId: string, authProvider: string): Promise<any> {
+  async getUserBySocialId(
+    socialId: string,
+    authProvider: string
+  ): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getUserBySocialId(socialId, authProvider);
     } else if (this.supabaseDb) {
@@ -188,7 +200,10 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getUserByEmailAndProvider(email: string, authProvider: string): Promise<any> {
+  async getUserByEmailAndProvider(
+    email: string,
+    authProvider: string
+  ): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.getUserByEmailAndProvider(email, authProvider);
     } else if (this.supabaseDb) {
@@ -198,12 +213,15 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async updateUser(id: string, updates: Partial<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  }>): Promise<any> {
+  async updateUser(
+    id: string,
+    updates: Partial<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+    }>
+  ): Promise<any> {
     if (this.sqliteDb) {
       return this.sqliteDb.updateUser(id, updates);
     } else if (this.supabaseDb) {
@@ -340,7 +358,11 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getMessages(chatId: string, limit?: number, offset?: number): Promise<any[]> {
+  async getMessages(
+    chatId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<any[]> {
     if (this.sqliteDb) {
       return this.sqliteDb.getMessages(chatId, limit, offset);
     } else if (this.supabaseDb) {
@@ -350,7 +372,11 @@ class DatabaseServiceWrapper implements DatabaseService {
     }
   }
 
-  async getMessagesBefore(chatId: string, beforeMessageId: string, limit?: number): Promise<any[]> {
+  async getMessagesBefore(
+    chatId: string,
+    beforeMessageId: string,
+    limit?: number
+  ): Promise<any[]> {
     if (this.sqliteDb) {
       return this.sqliteDb.getMessagesBefore(chatId, beforeMessageId, limit);
     } else if (this.supabaseDb) {

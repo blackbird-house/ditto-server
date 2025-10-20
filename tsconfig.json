@@ -23,10 +23,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": [
-    "src/**/*",
-    "api/**/*"
-  ],
+  "include": ["src/**/*", "api/**/*"],
   "exclude": [
     "node_modules",
     "dist",

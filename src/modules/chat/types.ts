@@ -31,6 +31,10 @@ export interface SendMessageRequest {
   content: string;
 }
 
+export interface SendAIMessageRequest {
+  content: string;
+}
+
 export interface SendMessageResponse {
   id: string;
   chatId: string;
@@ -77,7 +81,25 @@ export interface ChatService {
   createChat(userId: string, otherUserId: string): Promise<Chat>;
   getUserChats(userId: string): Promise<ChatListResponse[]>;
   getChatById(userId: string, chatId: string): Promise<ChatWithMessages | null>;
-  sendMessage(userId: string, chatId: string, content: string): Promise<Message>;
-  getChatMessages(userId: string, chatId: string, limit?: number, offset?: number): Promise<Message[]>;
-  getMessagesBefore(userId: string, chatId: string, beforeMessageId: string, limit?: number): Promise<Message[]>;
+  sendMessage(
+    userId: string,
+    chatId: string,
+    content: string
+  ): Promise<Message>;
+  getChatMessages(
+    userId: string,
+    chatId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<Message[]>;
+  getMessagesBefore(
+    userId: string,
+    chatId: string,
+    beforeMessageId: string,
+    limit?: number
+  ): Promise<Message[]>;
+  sendAIMessage(
+    userId: string,
+    content: string
+  ): Promise<{ userMessage: Message; aiMessage: Message }>;
 }

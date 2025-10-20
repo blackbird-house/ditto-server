@@ -11,21 +11,21 @@ export class SQLiteDatabase {
 
   constructor(dbPath: string) {
     this.dbPath = dbPath;
-    
+
     // Only ensure data directory for file-based databases
     if (dbPath !== ':memory:') {
       this.ensureDataDirectory();
     }
-    
+
     this.db = new sqlite3.Database(dbPath);
     this.initializeTables();
   }
 
   private async initializeTables(): Promise<void> {
     if (this.initialized) return;
-    
+
     const run = promisify(this.db.run.bind(this.db));
-    
+
     try {
       // Create users table
       await run(`
@@ -88,7 +88,7 @@ export class SQLiteDatabase {
       if (process.env['NODE_ENV'] !== 'test') {
         console.log('✅ Database tables initialized successfully');
       }
-      
+
       // Run migrations after table initialization
       await this.runMigrations();
     } catch (error) {
@@ -120,12 +120,10 @@ export class SQLiteDatabase {
     }
   }
 
-
-
   async run(sql: string, params: any[] = []): Promise<any> {
     await this.ensureInitialized();
     return new Promise((resolve, reject) => {
-      this.db.run(sql, params, function(err) {
+      this.db.run(sql, params, function (err) {
         if (err) reject(err);
         else resolve(this);
       });
@@ -171,14 +169,14 @@ export class SQLiteDatabase {
     await this.run(
       `INSERT INTO users (id, firstName, lastName, email, phone, authProvider, socialId, profilePictureUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        userData.id, 
-        userData.firstName, 
-        userData.lastName, 
-        userData.email, 
+        userData.id,
+        userData.firstName,
+        userData.lastName,
+        userData.email,
         userData.phone || null,
         userData.authProvider || 'phone',
         userData.socialId || null,
-        userData.profilePictureUrl || null
+        userData.profilePictureUrl || null,
       ]
     );
   }
@@ -195,30 +193,45 @@ export class SQLiteDatabase {
     return this.get('SELECT * FROM users WHERE phone = ?', [phone]);
   }
 
-  async getUserBySocialId(socialId: string, authProvider: string): Promise<any> {
-    return this.get('SELECT * FROM users WHERE socialId = ? AND authProvider = ?', [socialId, authProvider]);
+  async getUserBySocialId(
+    socialId: string,
+    authProvider: string
+  ): Promise<any> {
+    return this.get(
+      'SELECT * FROM users WHERE socialId = ? AND authProvider = ?',
+      [socialId, authProvider]
+    );
   }
 
-  async getUserByEmailAndProvider(email: string, authProvider: string): Promise<any> {
-    return this.get('SELECT * FROM users WHERE email = ? AND authProvider = ?', [email, authProvider]);
+  async getUserByEmailAndProvider(
+    email: string,
+    authProvider: string
+  ): Promise<any> {
+    return this.get(
+      'SELECT * FROM users WHERE email = ? AND authProvider = ?',
+      [email, authProvider]
+    );
   }
 
-  async updateUser(id: string, updates: Partial<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  }>): Promise<any> {
+  async updateUser(
+    id: string,
+    updates: Partial<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+    }>
+  ): Promise<any> {
     const fields = Object.keys(updates);
     const values = Object.values(updates);
-    
+
     if (fields.length === 0) {
       throw new Error('No fields to update');
     }
 
     const setClause = fields.map(field => `${field} = ?`).join(', ');
     const sql = `UPDATE users SET ${setClause}, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`;
-    
+
     await this.run(sql, [...values, id]);
     return this.getUserById(id);
   }
@@ -237,7 +250,12 @@ export class SQLiteDatabase {
   }): Promise<void> {
     await this.run(
       `INSERT INTO otp_sessions (id, phone, otp, expiresAt) VALUES (?, ?, ?, ?)`,
-      [sessionData.id, sessionData.phone, sessionData.otp, sessionData.expiresAt.toISOString()]
+      [
+        sessionData.id,
+        sessionData.phone,
+        sessionData.otp,
+        sessionData.expiresAt.toISOString(),
+      ]
     );
   }
 
@@ -253,7 +271,9 @@ export class SQLiteDatabase {
   }
 
   async cleanupExpiredOtpSessions(): Promise<void> {
-    await this.run('DELETE FROM otp_sessions WHERE expiresAt <= CURRENT_TIMESTAMP');
+    await this.run(
+      'DELETE FROM otp_sessions WHERE expiresAt <= CURRENT_TIMESTAMP'
+    );
   }
 
   // Chat operations
@@ -311,18 +331,31 @@ export class SQLiteDatabase {
   }): Promise<void> {
     await this.run(
       `INSERT INTO chat_messages (id, chatId, senderId, content) VALUES (?, ?, ?, ?)`,
-      [messageData.id, messageData.chatId, messageData.senderId, messageData.content]
+      [
+        messageData.id,
+        messageData.chatId,
+        messageData.senderId,
+        messageData.content,
+      ]
     );
   }
 
-  async getMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
+  async getMessages(
+    chatId: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<any[]> {
     return this.all(
       'SELECT * FROM chat_messages WHERE chatId = ? ORDER BY createdAt DESC LIMIT ? OFFSET ?',
       [chatId, limit, offset]
     );
   }
 
-  async getMessagesBefore(chatId: string, beforeMessageId: string, limit: number = 20): Promise<any[]> {
+  async getMessagesBefore(
+    chatId: string,
+    beforeMessageId: string,
+    limit: number = 20
+  ): Promise<any[]> {
     return this.all(
       `SELECT * FROM chat_messages 
        WHERE chatId = ? AND createdAt < (

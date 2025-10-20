@@ -9,7 +9,15 @@ import authRoutes from './modules/auth/routes';
 import chatRoutes from './modules/chat/routes';
 import { opsRoutes } from './modules/ops';
 import config from './config';
-import { urlNormalization, secretValidationMiddleware, jsonOnlyMiddleware, inputValidationMiddleware, httpsEnforcementMiddleware, loggingMiddleware, errorHandler } from './middleware';
+import {
+  urlNormalization,
+  secretValidationMiddleware,
+  jsonOnlyMiddleware,
+  inputValidationMiddleware,
+  httpsEnforcementMiddleware,
+  loggingMiddleware,
+  errorHandler,
+} from './middleware';
 
 const app: Application = express();
 
@@ -17,19 +25,27 @@ const app: Application = express();
 if (config.features.enableDebugRoutes) {
   try {
     // Load OpenAPI specification
-    const swaggerDocument = YAML.load(path.join(__dirname, '../openapi/openapi-consolidated.yaml'));
-    
+    const swaggerDocument = YAML.load(
+      path.join(__dirname, '../openapi/openapi-consolidated.yaml')
+    );
+
     // Serve OpenAPI spec as JSON
     app.get('/api-docs', (_req, res) => {
       res.json(swaggerDocument);
     });
-    
-    app.use('/docs', swaggerUi.serve as any, swaggerUi.setup(swaggerDocument, {
-      customCss: '.swagger-ui .topbar { display: none }',
-      customSiteTitle: 'Ditto Server API Documentation'
-    }) as any);
+
+    app.use(
+      '/docs',
+      swaggerUi.serve as any,
+      swaggerUi.setup(swaggerDocument, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'Ditto Server API Documentation',
+      }) as any
+    );
   } catch (error) {
-    console.warn('⚠️  OpenAPI documentation not available - openapi/openapi-consolidated.yaml not found');
+    console.warn(
+      '⚠️  OpenAPI documentation not available - openapi/openapi-consolidated.yaml not found'
+    );
   }
 }
 
@@ -40,21 +56,23 @@ app.use(urlNormalization);
 app.use(httpsEnforcementMiddleware);
 
 // Security headers middleware - MUST be early for security
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for Swagger UI
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for Swagger UI
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}));
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
 
 // Secret validation middleware - MUST be early to protect all routes
 app.use(secretValidationMiddleware);
@@ -82,7 +100,7 @@ app.use('/chats', chatRoutes);
 app.use('*', (_req, res) => {
   res.status(404).json({
     error: 'Not Found',
-    message: 'Resource not found'
+    message: 'Resource not found',
   });
 });
 

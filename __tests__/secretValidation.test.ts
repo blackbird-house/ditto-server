@@ -7,8 +7,7 @@ describe('Secret Validation Middleware', () => {
 
   describe('GET /ping', () => {
     it('should return 204 when secret header is missing (ping is excluded from auth)', async () => {
-      const response = await request(app)
-        .get('/ping');
+      const response = await request(app).get('/ping');
 
       expect(response.status).toBe(204);
       expect(response.body).toEqual({});
@@ -32,7 +31,6 @@ describe('Secret Validation Middleware', () => {
     });
   });
 
-
   describe('POST /users', () => {
     it('should return 401 when secret header is missing', async () => {
       const response = await request(app)
@@ -41,13 +39,13 @@ describe('Secret Validation Middleware', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: `john${Date.now()}@example.com`,
-          phone: `+1234567${Math.floor(Math.random() * 1000)}`
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`,
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     });
 
@@ -59,13 +57,13 @@ describe('Secret Validation Middleware', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: `john${Date.now()}@example.com`,
-          phone: `+1234567${Math.floor(Math.random() * 1000)}`
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`,
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     });
 
@@ -77,7 +75,7 @@ describe('Secret Validation Middleware', () => {
           firstName: 'John',
           lastName: 'Doe',
           email: `john${Date.now()}@example.com`,
-          phone: `+1234567${Math.floor(Math.random() * 1000)}`
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`,
         });
 
       expect(response.status).toBe(201);
@@ -90,13 +88,13 @@ describe('Secret Validation Middleware', () => {
       const response = await request(app)
         .post('/auth/send-otp')
         .send({
-          phone: `+1234567${Math.floor(Math.random() * 1000)}`
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`,
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     });
 
@@ -105,13 +103,13 @@ describe('Secret Validation Middleware', () => {
         .post('/auth/send-otp')
         .set('X-API-Secret', invalidSecret)
         .send({
-          phone: `+1234567${Math.floor(Math.random() * 1000)}`
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`,
         });
 
       expect(response.status).toBe(401);
       expect(response.body).toEqual({
         error: 'Unauthorized',
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     });
 
@@ -120,7 +118,7 @@ describe('Secret Validation Middleware', () => {
         .post('/auth/send-otp')
         .set('X-API-Secret', validSecret)
         .send({
-          phone: `+1234567${Math.floor(Math.random() * 1000)}`
+          phone: `+1234567${Math.floor(Math.random() * 1000)}`,
         });
 
       expect(response.status).toBe(204);

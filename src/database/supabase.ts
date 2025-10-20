@@ -7,7 +7,9 @@ export class SupabaseDatabase {
   constructor(url: string, anonKey: string) {
     // Skip initialization in test environment
     if (process.env['NODE_ENV'] === 'test') {
-      console.log('⚠️  Supabase client initialization skipped in test environment');
+      console.log(
+        '⚠️  Supabase client initialization skipped in test environment'
+      );
       this.initialized = true;
       return;
     }
@@ -17,8 +19,8 @@ export class SupabaseDatabase {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
+        detectSessionInUrl: false,
+      },
     };
 
     this.supabase = createClient(url, anonKey, clientOptions);
@@ -27,7 +29,7 @@ export class SupabaseDatabase {
 
   private async initializeTables(): Promise<void> {
     if (this.initialized) return;
-    
+
     try {
       // Skip connection test in test environment
       if (process.env['NODE_ENV'] === 'test') {
@@ -35,27 +37,28 @@ export class SupabaseDatabase {
         this.initialized = true;
         return;
       }
-      
+
       // Check if tables exist by trying to query them
       // If they don't exist, we'll get an error which is expected
       // In a real production setup, you'd typically run migrations separately
-      
+
       // Test connection by querying a simple table
-      const { error } = await this.supabase!!
-        .from('users')
+      const { error } = await this.supabase!!.from('users')
         .select('id')
         .limit(1);
-      
+
       if (error && error.code === 'PGRST116') {
         // Table doesn't exist - this is expected for new setups
-        console.log('⚠️  Supabase tables not found. Please run migrations to create tables.');
+        console.log(
+          '⚠️  Supabase tables not found. Please run migrations to create tables.'
+        );
       } else if (error) {
         console.error('❌ Error connecting to Supabase:', error);
         throw error;
       } else {
         console.log('✅ Connected to Supabase successfully');
       }
-      
+
       this.initialized = true;
     } catch (error) {
       console.error('❌ Error initializing Supabase connection:', error);
@@ -67,10 +70,12 @@ export class SupabaseDatabase {
     if (!this.initialized) {
       await this.initializeTables();
     }
-    
+
     // In test environment, throw an error if methods are called
     if (process.env['NODE_ENV'] === 'test' || !this.supabase) {
-      throw new Error('Supabase methods should not be called in test environment - use SQLite instead');
+      throw new Error(
+        'Supabase methods should not be called in test environment - use SQLite instead'
+      );
     }
   }
 
@@ -78,19 +83,25 @@ export class SupabaseDatabase {
   async run(_sql: string, _params: any[] = []): Promise<any> {
     // Supabase doesn't support raw SQL in the same way
     // This is a placeholder for migration compatibility
-    throw new Error('Raw SQL operations not supported in Supabase. Use specific methods instead.');
+    throw new Error(
+      'Raw SQL operations not supported in Supabase. Use specific methods instead.'
+    );
   }
 
   async get(_sql: string, _params: any[] = []): Promise<any> {
     // Supabase doesn't support raw SQL in the same way
     // This is a placeholder for migration compatibility
-    throw new Error('Raw SQL operations not supported in Supabase. Use specific methods instead.');
+    throw new Error(
+      'Raw SQL operations not supported in Supabase. Use specific methods instead.'
+    );
   }
 
   async all(_sql: string, _params: any[] = []): Promise<any[]> {
     // Supabase doesn't support raw SQL in the same way
     // This is a placeholder for migration compatibility
-    throw new Error('Raw SQL operations not supported in Supabase. Use specific methods instead.');
+    throw new Error(
+      'Raw SQL operations not supported in Supabase. Use specific methods instead.'
+    );
   }
 
   // User operations
@@ -105,10 +116,9 @@ export class SupabaseDatabase {
     profilePictureUrl?: string;
   }): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('users')
-      .insert([{
+
+    const { error } = await this.supabase!.from('users').insert([
+      {
         id: userData.id,
         first_name: userData.firstName,
         last_name: userData.lastName,
@@ -118,8 +128,9 @@ export class SupabaseDatabase {
         social_id: userData.socialId,
         profile_picture_url: userData.profilePictureUrl,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }]);
+        updated_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
       throw new Error(`Failed to create user: ${error.message}`);
@@ -128,9 +139,8 @@ export class SupabaseDatabase {
 
   async getUserById(id: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('users')
+
+    const { data, error } = await this.supabase!.from('users')
       .select('*')
       .eq('id', id)
       .single();
@@ -147,7 +157,7 @@ export class SupabaseDatabase {
         email: data.email,
         phone: data.phone,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
@@ -156,9 +166,8 @@ export class SupabaseDatabase {
 
   async getUserByEmail(email: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('users')
+
+    const { data, error } = await this.supabase!.from('users')
       .select('*')
       .eq('email', email)
       .single();
@@ -175,7 +184,7 @@ export class SupabaseDatabase {
         email: data.email,
         phone: data.phone,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
@@ -184,9 +193,8 @@ export class SupabaseDatabase {
 
   async getUserByPhone(phone: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('users')
+
+    const { data, error } = await this.supabase!.from('users')
       .select('*')
       .eq('phone', phone)
       .single();
@@ -203,18 +211,20 @@ export class SupabaseDatabase {
         email: data.email,
         phone: data.phone,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
     return null;
   }
 
-  async getUserBySocialId(socialId: string, authProvider: string): Promise<any> {
+  async getUserBySocialId(
+    socialId: string,
+    authProvider: string
+  ): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('users')
+
+    const { data, error } = await this.supabase!.from('users')
       .select('*')
       .eq('social_id', socialId)
       .eq('auth_provider', authProvider)
@@ -235,25 +245,29 @@ export class SupabaseDatabase {
         socialId: data.social_id,
         profilePictureUrl: data.profile_picture_url,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
     return null;
   }
 
-  async getUserByEmailAndProvider(email: string, authProvider: string): Promise<any> {
+  async getUserByEmailAndProvider(
+    email: string,
+    authProvider: string
+  ): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('users')
+
+    const { data, error } = await this.supabase!.from('users')
       .select('*')
       .eq('email', email)
       .eq('auth_provider', authProvider)
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      throw new Error(`Failed to get user by email and provider: ${error.message}`);
+      throw new Error(
+        `Failed to get user by email and provider: ${error.message}`
+      );
     }
 
     if (data) {
@@ -267,23 +281,26 @@ export class SupabaseDatabase {
         socialId: data.social_id,
         profilePictureUrl: data.profile_picture_url,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
     return null;
   }
 
-  async updateUser(id: string, updates: Partial<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  }>): Promise<any> {
+  async updateUser(
+    id: string,
+    updates: Partial<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+    }>
+  ): Promise<any> {
     await this.ensureInitialized();
-    
+
     const updateData: any = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     if (updates.firstName) updateData.first_name = updates.firstName;
@@ -291,8 +308,7 @@ export class SupabaseDatabase {
     if (updates.email) updateData.email = updates.email;
     if (updates.phone) updateData.phone = updates.phone;
 
-    const { data, error } = await this.supabase!
-      .from('users')
+    const { data, error } = await this.supabase!.from('users')
       .update(updateData)
       .eq('id', id)
       .select()
@@ -310,7 +326,7 @@ export class SupabaseDatabase {
         email: data.email,
         phone: data.phone,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
@@ -319,11 +335,8 @@ export class SupabaseDatabase {
 
   async deleteUser(id: string): Promise<boolean> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('users')
-      .delete()
-      .eq('id', id);
+
+    const { error } = await this.supabase!.from('users').delete().eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete user: ${error.message}`);
@@ -340,16 +353,16 @@ export class SupabaseDatabase {
     expiresAt: Date;
   }): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('otp_sessions')
-      .insert([{
+
+    const { error } = await this.supabase!.from('otp_sessions').insert([
+      {
         id: sessionData.id,
         phone: sessionData.phone,
         otp: sessionData.otp,
         expires_at: sessionData.expiresAt.toISOString(),
-        created_at: new Date().toISOString()
-      }]);
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
       throw new Error(`Failed to create OTP session: ${error.message}`);
@@ -358,9 +371,8 @@ export class SupabaseDatabase {
 
   async getOtpSession(phone: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('otp_sessions')
+
+    const { data, error } = await this.supabase!.from('otp_sessions')
       .select('*')
       .eq('phone', phone)
       .gt('expires_at', new Date().toISOString())
@@ -378,7 +390,7 @@ export class SupabaseDatabase {
         phone: data.phone,
         otp: data.otp,
         expiresAt: data.expires_at,
-        createdAt: data.created_at
+        createdAt: data.created_at,
       };
     }
 
@@ -387,9 +399,8 @@ export class SupabaseDatabase {
 
   async deleteOtpSession(id: string): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('otp_sessions')
+
+    const { error } = await this.supabase!.from('otp_sessions')
       .delete()
       .eq('id', id);
 
@@ -400,14 +411,15 @@ export class SupabaseDatabase {
 
   async cleanupExpiredOtpSessions(): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('otp_sessions')
+
+    const { error } = await this.supabase!.from('otp_sessions')
       .delete()
       .lte('expires_at', new Date().toISOString());
 
     if (error) {
-      throw new Error(`Failed to cleanup expired OTP sessions: ${error.message}`);
+      throw new Error(
+        `Failed to cleanup expired OTP sessions: ${error.message}`
+      );
     }
   }
 
@@ -418,16 +430,16 @@ export class SupabaseDatabase {
     user2Id: string;
   }): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('chats')
-      .insert([{
+
+    const { error } = await this.supabase!.from('chats').insert([
+      {
         id: chatData.id,
         user1_id: chatData.user1Id,
         user2_id: chatData.user2Id,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }]);
+        updated_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
       throw new Error(`Failed to create chat: ${error.message}`);
@@ -436,9 +448,8 @@ export class SupabaseDatabase {
 
   async getChatById(id: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('chats')
+
+    const { data, error } = await this.supabase!.from('chats')
       .select('*')
       .eq('id', id)
       .single();
@@ -453,7 +464,7 @@ export class SupabaseDatabase {
         user1Id: data.user1_id,
         user2Id: data.user2_id,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
@@ -462,11 +473,12 @@ export class SupabaseDatabase {
 
   async getChatByParticipants(user1Id: string, user2Id: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('chats')
+
+    const { data, error } = await this.supabase!.from('chats')
       .select('*')
-      .or(`and(user1_id.eq.${user1Id},user2_id.eq.${user2Id}),and(user1_id.eq.${user2Id},user2_id.eq.${user1Id})`)
+      .or(
+        `and(user1_id.eq.${user1Id},user2_id.eq.${user2Id}),and(user1_id.eq.${user2Id},user2_id.eq.${user1Id})`
+      )
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -479,7 +491,7 @@ export class SupabaseDatabase {
         user1Id: data.user1_id,
         user2Id: data.user2_id,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
@@ -488,9 +500,8 @@ export class SupabaseDatabase {
 
   async getUserChats(userId: string): Promise<any[]> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('chats')
+
+    const { data, error } = await this.supabase!.from('chats')
       .select('*')
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
       .order('updated_at', { ascending: false });
@@ -499,21 +510,22 @@ export class SupabaseDatabase {
       throw new Error(`Failed to get user chats: ${error.message}`);
     }
 
-    return data?.map(chat => ({
-      id: chat.id,
-      user1Id: chat.user1_id,
-      user2Id: chat.user2_id,
-      createdAt: chat.created_at,
-      updatedAt: chat.updated_at,
-      otherUserId: chat.user1_id === userId ? chat.user2_id : chat.user1_id
-    })) || [];
+    return (
+      data?.map(chat => ({
+        id: chat.id,
+        user1Id: chat.user1_id,
+        user2Id: chat.user2_id,
+        createdAt: chat.created_at,
+        updatedAt: chat.updated_at,
+        otherUserId: chat.user1_id === userId ? chat.user2_id : chat.user1_id,
+      })) || []
+    );
   }
 
   async updateChatUpdatedAt(chatId: string): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('chats')
+
+    const { error } = await this.supabase!.from('chats')
       .update({ updated_at: new Date().toISOString() })
       .eq('id', chatId);
 
@@ -530,28 +542,31 @@ export class SupabaseDatabase {
     content: string;
   }): Promise<void> {
     await this.ensureInitialized();
-    
-    const { error } = await this.supabase!
-      .from('chat_messages')
-      .insert([{
+
+    const { error } = await this.supabase!.from('chat_messages').insert([
+      {
         id: messageData.id,
         chat_id: messageData.chatId,
         sender_id: messageData.senderId,
         content: messageData.content,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }]);
+        updated_at: new Date().toISOString(),
+      },
+    ]);
 
     if (error) {
       throw new Error(`Failed to create message: ${error.message}`);
     }
   }
 
-  async getMessages(chatId: string, limit: number = 50, offset: number = 0): Promise<any[]> {
+  async getMessages(
+    chatId: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<any[]> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('chat_messages')
+
+    const { data, error } = await this.supabase!.from('chat_messages')
       .select('*')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: false })
@@ -561,34 +576,39 @@ export class SupabaseDatabase {
       throw new Error(`Failed to get chat messages: ${error.message}`);
     }
 
-    return data?.map(message => ({
-      id: message.id,
-      chatId: message.chat_id,
-      senderId: message.sender_id,
-      content: message.content,
-      createdAt: message.created_at,
-      updatedAt: message.updated_at
-    })) || [];
+    return (
+      data?.map(message => ({
+        id: message.id,
+        chatId: message.chat_id,
+        senderId: message.sender_id,
+        content: message.content,
+        createdAt: message.created_at,
+        updatedAt: message.updated_at,
+      })) || []
+    );
   }
 
-  async getMessagesBefore(chatId: string, beforeMessageId: string, limit: number = 20): Promise<any[]> {
+  async getMessagesBefore(
+    chatId: string,
+    beforeMessageId: string,
+    limit: number = 20
+  ): Promise<any[]> {
     await this.ensureInitialized();
-    
+
     // First, get the timestamp of the message we want to get messages before
-    const { data: beforeMessage, error: beforeError } = await this.supabase!
-      .from('chat_messages')
-      .select('created_at')
-      .eq('id', beforeMessageId)
-      .eq('chat_id', chatId)
-      .single();
+    const { data: beforeMessage, error: beforeError } =
+      await this.supabase!.from('chat_messages')
+        .select('created_at')
+        .eq('id', beforeMessageId)
+        .eq('chat_id', chatId)
+        .single();
 
     if (beforeError || !beforeMessage) {
       throw new Error(`Failed to find message with ID ${beforeMessageId}`);
     }
 
     // Then get messages older than that timestamp
-    const { data, error } = await this.supabase!
-      .from('chat_messages')
+    const { data, error } = await this.supabase!.from('chat_messages')
       .select('*')
       .eq('chat_id', chatId)
       .lt('created_at', beforeMessage.created_at)
@@ -596,24 +616,27 @@ export class SupabaseDatabase {
       .limit(limit);
 
     if (error) {
-      throw new Error(`Failed to get messages before ${beforeMessageId}: ${error.message}`);
+      throw new Error(
+        `Failed to get messages before ${beforeMessageId}: ${error.message}`
+      );
     }
 
-    return data?.map(message => ({
-      id: message.id,
-      chatId: message.chat_id,
-      senderId: message.sender_id,
-      content: message.content,
-      createdAt: message.created_at,
-      updatedAt: message.updated_at
-    })) || [];
+    return (
+      data?.map(message => ({
+        id: message.id,
+        chatId: message.chat_id,
+        senderId: message.sender_id,
+        content: message.content,
+        createdAt: message.created_at,
+        updatedAt: message.updated_at,
+      })) || []
+    );
   }
 
   async getLastMessage(chatId: string): Promise<any> {
     await this.ensureInitialized();
-    
-    const { data, error } = await this.supabase!
-      .from('chat_messages')
+
+    const { data, error } = await this.supabase!.from('chat_messages')
       .select('*')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: false })
@@ -631,7 +654,7 @@ export class SupabaseDatabase {
         senderId: data.sender_id,
         content: data.content,
         createdAt: data.created_at,
-        updatedAt: data.updated_at
+        updatedAt: data.updated_at,
       };
     }
 
@@ -642,7 +665,10 @@ export class SupabaseDatabase {
 // Singleton instance
 let supabaseInstance: SupabaseDatabase | null = null;
 
-export const getSupabaseDatabase = (url: string, anonKey: string): SupabaseDatabase => {
+export const getSupabaseDatabase = (
+  url: string,
+  anonKey: string
+): SupabaseDatabase => {
   if (!supabaseInstance) {
     supabaseInstance = new SupabaseDatabase(url, anonKey);
   }
