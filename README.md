@@ -128,6 +128,9 @@ yarn test
 # Run with coverage
 yarn test:coverage
 
+# Format
+yarn format
+
 # Run specific environment tests
 yarn test:dev
 yarn test:staging
