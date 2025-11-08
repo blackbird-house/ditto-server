@@ -11,11 +11,12 @@ export const secretValidationMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Skip secret validation for docs, debug, and ping endpoints
+  // Skip secret validation for docs, debug, ping, and startup endpoints
   if (
     req.path.startsWith('/docs') ||
     req.path.startsWith('/debug') ||
-    req.path === '/ping'
+    req.path === '/ping' ||
+    req.path === '/startup'
   ) {
     return next();
   }

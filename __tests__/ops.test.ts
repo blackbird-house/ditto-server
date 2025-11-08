@@ -82,6 +82,112 @@ describe('Ops Module', () => {
     });
   });
 
+  describe('GET /startup', () => {
+    it('should return startup information with version and features', async () => {
+      const response = await request(app)
+        .get('/startup')
+        .expect(200);
+
+      expect(response.body).toEqual({
+        latestVersion: "1.0.0",
+        features: {
+          chat: true
+        }
+      });
+    });
+
+    it('should have correct content-type header', async () => {
+      const response = await request(app)
+        .get('/startup')
+        .expect(200);
+
+      expect(response.headers['content-type']).toMatch(/application\/json/);
+    });
+
+    it('should not require API secret (startup is excluded from auth)', async () => {
+      await request(app).get('/startup').expect(200);
+    });
+
+    it('should work with invalid API secret (startup is excluded from auth)', async () => {
+      const response = await request(app)
+        .get('/startup')
+        .set('X-API-Secret', 'invalid-secret')
+        .expect(200);
+
+      expect(response.body).toEqual({
+        latestVersion: "1.0.0",
+        features: {
+          chat: true
+        }
+      });
+    });
+
+    it('should not accept POST requests', async () => {
+      await request(app)
+        .post('/startup')
+        .expect(400);
+    });
+
+    it('should not accept PUT requests', async () => {
+      await request(app)
+        .put('/startup')
+        .expect(400);
+    });
+
+    it('should not accept DELETE requests', async () => {
+      await request(app)
+        .delete('/startup')
+        .expect(404);
+    });
+
+    it('should not accept PATCH requests', async () => {
+      await request(app)
+        .patch('/startup')
+        .expect(400);
+    });
+
+    it('should handle multiple concurrent requests with delay', async () => {
+      const startTime = Date.now();
+      
+      const promises = Array(5) // Reduced from 10 to 5 for faster test execution
+        .fill(null)
+        .map(() => request(app).get('/startup').expect(200));
+
+      const responses = await Promise.all(promises);
+      const endTime = Date.now();
+      const totalTime = endTime - startTime;
+
+      responses.forEach(response => {
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({
+          latestVersion: "1.0.0",
+          features: {
+            chat: true
+          }
+        });
+      });
+
+      // All requests should complete after approximately 2 seconds
+      expect(totalTime).toBeGreaterThanOrEqual(1900);
+      expect(totalTime).toBeLessThan(3000);
+    });
+
+    it('should respond with 2 second delay to startup requests', async () => {
+      const startTime = Date.now();
+
+      await request(app)
+        .get('/startup')
+        .expect(200);
+
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+
+      // Should respond after approximately 2 seconds (allowing for some variance)
+      expect(responseTime).toBeGreaterThanOrEqual(1900); // At least 1.9 seconds
+      expect(responseTime).toBeLessThan(3000); // But not more than 3 seconds
+    });
+  });
+
   describe('Ops Module Structure', () => {
     it('should be accessible through root path', async () => {
       // The ops module is mounted at root path, so /ping should work
